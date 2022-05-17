@@ -1,8 +1,16 @@
 #include <iostream>
 
+#include "cube.hpp"
+
 int main()
 {
-    std::cout << "Testing..." << std::endl;
+   cubie_t testCubie = newCubie();
+   printCubie(testCubie);
 
-    return 0;
+   for(int x = 0; x < 4; x++){
+       rotateCubie(testCubie, x);
+       printCubie(testCubie);
+   }
+
+   return 0; 
 }
