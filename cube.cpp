@@ -1,6 +1,11 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
 #include <string>
+#include <unordered_set>
+
+#include <cstdlib>
+#include <ctime>
 
 #include "cube.hpp"
 
@@ -53,10 +58,8 @@ std::vector<int> Cube::getFaceInds(byte_t face){
 Cube::Cube(int size) : cubeSize(size), faceSize(size * size) {
     //6x^2 - 12x + 8 gives you the number of cubies required for cubeSize x, but I'm just doing x^3 since that's easier to program, despite it creating cubies that won't ever be used.
     //The cubies are all only 4 bytes large though, so it's not that big of a deal
-    this->cubies = new cubie_t[this->faceSize * this->cubeSize];
-
     for(int ind = 0; ind < this->faceSize * this->cubeSize; ind++){
-        this->cubies[ind] = newCubie();
+        this->cubies.push_back(newCubie());
     }
 
     this->rings = new std::vector<std::vector<int>>[this->cubeSize * 3];
@@ -72,10 +75,31 @@ Cube::Cube(int size) : cubeSize(size), faceSize(size * size) {
             }*/
         }
     }
+
+    this->score = this->heuristic_stupid();
+}
+
+Cube::Cube(const Cube &cube) : cubeSize(cube.cubeSize) , faceSize(cube.cubeSize * cube.cubeSize) {
+    for(cubie_t cubie: cube.cubies){
+        this->cubies.push_back(cubie);
+    }
+
+    this->rings = new std::vector<std::vector<int>>[this->cubeSize * 3];
+
+    for(int dir = 0; dir < 3; dir++){
+        for(int depth = 0; depth < this->cubeSize; depth++){
+            this->rings[dir * this->cubeSize + depth] = cube.rings[dir * this->cubeSize + depth];
+        }
+    }
+
+    for(Move move : cube.moves){
+        this->moves.push_back(move);
+    }
+
+    this->score = cube.score;
 }
 
 Cube::~Cube(){
-    delete[] this->cubies;
     delete[] this->rings;
 }
 
@@ -181,13 +205,17 @@ void Cube::printCube(){
     this->printFace(DIR_Y,this->cubeSize-1,FACE_DOWN);
     std::cout << "RIGHT:" << std::endl;
     this->printFace(DIR_Z,this->cubeSize-1,FACE_RIGHT);
+    std::cout << std::endl;
 }
 
 void Cube::rotateFace(byte_t dir, int depth, bool counterClockwise){
     int ringsInd = dir * this->cubeSize + depth;
     int ind;
 
-    for(int ringInd = 0; ringInd < this->rings[ringInd].size(); ringInd++){
+    for(unsigned long ringInd = 0; ringInd < this->rings[ringInd].size(); ringInd++){
+
+        if (ringInd > 0 && depth > 0 && depth < this->cubeSize - 1) break;
+
         for(int n = 0; n < this->cubeSize - 1; n++){
             if(counterClockwise){
                 ind = this->rings[ringsInd][ringInd].front();
@@ -208,8 +236,176 @@ void Cube::rotateFace(byte_t dir, int depth, bool counterClockwise){
 
 }
 
-void Cube::doMove(move_t move){
-    this->rotateFace(DIR_X, 0, false);
+void Cube::doMove(Move move){
+    /*for(int dir = 0; dir < 3; dir++){
+        for(int depth = 0; depth < this->cubeSize; depth++){
+            this->rotateFace(dir, depth, false);
+            this->printCube();
+            this->rotateFace(dir, depth, true);
+            this->printCube();
+        }
+    }*/
+    
+    if(move.depth >= this->cubeSize) return;
+
+    this->rotateFace(move.dir, move.depth, move.ccw);
+    this->moves.push_back(move);
+
+    this->score = this->heuristic_stupid();
+}
+
+void Cube::doMoves(std::vector<Move> moves){
+    for(Move move : moves) this->doMove(move);
+}
+
+void Cube::randomize(int randomMoveNum){
+    std::srand(std::time(nullptr));
+
+    for(int n = 0; n < randomMoveNum; n++){
+        this->rotateFace(rand() % 3, rand() % this->cubeSize, rand() % 2);
+        //this->doMove(Move(rand() % 3, rand() % this->cubeSize, rand() % 2));
+    }
+
+    this->score = this->heuristic_stupid();
+}
+
+bool Cube::isComplete(){
+    cubie_t checkCubie = this->cubies[0];
+
+    for(int ind = 1; ind < this->cubeSize * this->faceSize; ind++){
+        if(this->cubies[ind] != checkCubie) return false;
+    }
+
+    return true;
+}
+
+void Cube::printMoves(){
+    for(Move move: this->moves){
+        move.printMove();
+    }
+    std::cout << std::endl;
+}
+
+void Cube::reverseFromMoves(){
+    int moveNum = this->moves.size();
+    Move move;
+
+    for(int x = 0; x < moveNum; x++){
+        move = this->moves.back();
+        this->rotateFace(move.dir,move.depth,!move.ccw);
+        this->moves.pop_back();
+    }
+
+    this->score = this->heuristic_stupid();
+}
+
+int Cube::heuristic_stupid(){
+
+    int score = 0;
+    cubie_t testCubie = newCubie();
+
+    for(int ind : this->getFaceInds(0,0)){
+        if(this->cubies[ind] == testCubie) score++;
+        if(this->cubies[ind - this->cubeSize * (this->cubeSize - 1)] == testCubie) score++;
+    }
+
+    for(int depth = 1; depth < this->cubeSize - 1; depth++){
+        for(int ind : this->rings[depth][0]){
+            if(this->cubies[ind] == testCubie) score++;
+        }
+    }
+
+    return score + this->moves.size();
+}
+
+void Cube::solve_stupid(){
+    std::vector<Cube> cubeHeap;
+    std::vector<Move> moveList;
+
+    std::vector<std::vector<cubie_t>> seenCubies;
+    bool search;
+
+    cubeHeap.push_back(Cube(*this));
+
+    while(cubeHeap.size()){
+
+        search = true; 
+
+        for(std::vector<cubie_t> cubies : seenCubies){
+            if(cubeHeap.back().getCubies() == cubies){
+                search = false;
+                break;
+            }
+        }
+
+        if(search){
+
+            cubeHeap.back().printCube();
+
+            if(cubeHeap.back().isComplete()){
+                this->doMoves(cubeHeap.back().getMoves());
+                return;
+            }
+
+            seenCubies.push_back(cubeHeap.back().getCubies());
+            for(int dir = 0; dir < 3; dir++){
+                for(int depth = 0; depth < cubeHeap.back().getCubeSize(); depth++){
+                    Cube cube1(cubeHeap.back());
+                    cube1.doMove(Move(dir, depth, false));
+                    cubeHeap.push_back(cube1);
+                    std::push_heap(cubeHeap.begin(), cubeHeap.end(), compare_stupid);
+
+                    Cube cube2(cubeHeap.back());
+                    cube2.doMove(Move(dir, depth, true));
+                    cubeHeap.push_back(cube2);
+                    std::push_heap(cubeHeap.begin(), cubeHeap.end(), compare_stupid);
+                }
+            }
+        }
+
+        cubeHeap.pop_back();
+    }
+
+    std::cout << "You should never see this" << std::endl;
+
+}
+
+bool compare_stupid(const Cube &c1, const Cube &c2){
+    return c1.score > c2.score;
+}
+
+Move::Move(byte_t dir, int depth, bool ccw){
+    this->dir = dir;
+    this->depth = depth;
+    this->ccw = ccw;
+}
+
+Move::Move(){
+    this->dir = DIR_X;
+    this->depth = 0;
+    this->ccw = false;
+}
+
+void Move::printMove(){
+
+    char moveChar;
+
+    if(this->depth > 0) std::cout << this->depth + 1;
+    switch(this->dir){
+        case DIR_X:
+        default:
+        moveChar = 'F';
+        break;
+        case DIR_Y:
+        moveChar = 'U';
+        break;
+        case DIR_Z:
+        moveChar = 'L';
+        break;
+    }
+    std::cout << moveChar;
+    if(ccw) std::cout << '\'';
+    std::cout << ' ';
 }
 
 void printCubie(cubie_t &cubie){

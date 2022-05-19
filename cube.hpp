@@ -18,26 +18,30 @@
 #define COL_BLUE 4
 #define COL_WHITE 5
 
-#define ROT_CLOCK 0
-#define ROT_COUNTCLOCK 4
-
 #define DIR_X 0
 #define DIR_Y 1
 #define DIR_Z 2
 
-enum eMove {MOVE_F, MOVE_R, MOVE_U, MOVE_L, MOVE_B, MOVE_D};
-
 using byte_t = unsigned char;
 using col_t = byte_t;
-using move_t = byte_t;
 using cubie_t = uint32_t;
 
+struct Move {
+    byte_t dir;
+    int depth;
+    bool ccw;
+
+    Move();
+    Move(byte_t, int, bool);
+    void printMove();
+};
+
 class Cube {
-    cubie_t *cubies;
+    std::vector<cubie_t> cubies;
     int cubeSize;
     int faceSize;
     std::vector<std::vector<int>> *rings;
-    std::vector<move_t> moves;
+    std::vector<Move> moves;
 
     std::vector<int> getFaceInds(byte_t, int);
     std::vector<std::vector<int>> makeRing(byte_t, int);
@@ -46,20 +50,32 @@ class Cube {
     void printFace(byte_t, int, byte_t);
     void rotateFace(byte_t, int, bool);
 
+    int heuristic_stupid();
+
     public:
 
+    int score;
+
     Cube(int);
+    Cube(const Cube&);
     ~Cube();
 
     void printCube();
     bool isComplete();
+    int getCubeSize() {return this->cubeSize;}
+    std::vector<cubie_t> getCubies() {return this->cubies;}
+    std::vector<Move> getMoves() {return this->moves;}
 
-    void randomize();
-    void doMove(move_t);
+    void randomize(int);
+    void doMove(Move);
+    void doMoves(std::vector<Move>);
     void printMoves();
+    void reverseFromMoves();
+
+    void solve_stupid();
 };
 
-
+bool compare_stupid(const Cube &c1, const Cube &c2);
 
 cubie_t newCubie();
 void printCubie(cubie_t&);
