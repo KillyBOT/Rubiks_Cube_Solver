@@ -2,6 +2,7 @@
 #define CUBE_H
 
 #include <vector>
+#include <string>
 
 #define FACE_NUM 6
 #define FACE_FRONT 0
@@ -30,9 +31,11 @@ struct Move {
     byte_t dir;
     int depth;
     bool ccw;
+    std::string moveStr;
 
     Move();
     Move(byte_t, int, bool);
+    Move(std::string);
     void printMove();
 };
 

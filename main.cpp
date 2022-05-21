@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 
 #include "cube.hpp"
 
@@ -41,7 +42,11 @@ int main()
     //cube.doMove(Move(DIR_Z,1,false)); //L2
     //cube.printCube();
 
-    cube.randomize(6);
+    /*Move testMove(std::string("2R\'"));
+    testMove.printMove();
+    std::cout << std::endl;*/
+
+    cube.randomize(3);
     cube.printCube();
     //std::cout << cube.score << std::endl;
 

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <string>
 
 #include <cstdlib>
 #include <ctime>
@@ -193,24 +194,14 @@ void Cube::printCube(){
 }
 
 void Cube::rotateFace(byte_t dir, int depth, bool counterClockwise){
+    
+    if(depth < 0) depth += this->cubeSize;
+    
     int ringsInd = dir * this->cubeSize + depth;
     //int ind;
     cubie_t temp;
 
     for(std::vector<int> ring : this->rings[ringsInd]){
-
-        //if (ringInd > 0 && depth > 0 && depth < this->cubeSize - 1) break;
-        /*for(int n = 0; n < this->cubeSize - 1; n++){
-            if(counterClockwise){
-                ind = this->rings[ringsInd][ringInd].front();
-                this->rings[ringsInd][ringInd].erase(this->rings[ringsInd][ringInd].begin());
-                this->rings[ringsInd][ringInd].push_back(ind);
-            } else {
-                ind = this->rings[ringsInd][ringInd].back();
-                this->rings[ringsInd][ringInd].pop_back();
-                this->rings[ringsInd][ringInd].insert(this->rings[ringsInd][ringInd].begin(),ind);
-            }
-        }*/
 
         for(int n = 1; n < this->cubeSize; n++){
             if(counterClockwise){
@@ -244,7 +235,7 @@ void Cube::rotateCube(byte_t dir, bool counterClockwise){
 
 void Cube::doMove(Move move){
     
-    if(move.depth >= this->cubeSize) return;
+    if(move.depth >= this->cubeSize || -move.depth >= this->cubeSize) return;
 
     this->rotateFace(move.dir, move.depth, move.ccw);
     this->moves.push_back(move);
@@ -260,8 +251,10 @@ void Cube::randomize(int randomMoveNum){
     std::vector<Move> moves;
 
     for(int n = 0; n < randomMoveNum; n++){
-        moves.push_back(Move(rand() % 3, rand() % this->cubeSize, rand() % 2));
-        this->rotateFace(rand() % 3, rand() % this->cubeSize, rand() % 2);
+        moves.push_back(Move(rand() % 3, rand() % this->cubeSize - this->cubeSize / 2, rand() % 2));
+        this->rotateFace(moves.back().dir, moves.back().depth, moves.back().ccw);
+        //moves.back().printMove();
+        //std::cout << std::endl;
         //this->printCube();
     }
 
@@ -364,32 +357,81 @@ Move::Move(byte_t dir, int depth, bool ccw){
     this->dir = dir;
     this->depth = depth;
     this->ccw = ccw;
+    
+    this->moveStr = "";
+    if(this->depth > 0){
+        moveStr += std::to_string(depth + 1);
+    } else if (this->depth < -1){
+        moveStr += std::to_string(-depth);
+    }
+
+    switch(dir){
+        case DIR_X:
+        default:
+        if(this->depth >= 0) moveStr += "F";
+        else moveStr += "B";
+        break;
+        case DIR_Y:
+        if(this->depth >= 0) moveStr += "U";
+        else moveStr += "D";
+        break;
+        case DIR_Z:
+        if(this->depth >= 0) moveStr += "L";
+        else moveStr += "R";
+    }
+    if((this->depth < 0 && !ccw) || (this->depth >= 0 && ccw)) moveStr += "\'";
+}
+Move::Move(std::string str){
+
+    this->moveStr = str;
+
+    size_t p = 0;
+
+    while(!isalpha(str[p])) p++;
+    this->depth = p ? std::stoi(str.substr(0,p)) - 1 : 0;
+
+    this->ccw = false;
+    
+    switch(str[p]){
+        case 'F':
+        default:
+        this->dir = DIR_X;
+        break;
+        case 'R':
+        this->dir = DIR_Z;
+        this->ccw = true;
+        this->depth *= -1;
+        this->depth--;
+        break;
+        case 'U':
+        this->dir = DIR_Y;
+        break;
+        case 'L':
+        this->dir = DIR_Z;
+        case 'D':
+        this->dir = DIR_Y;
+        this->ccw = true;
+        this->depth *= -1;
+        this->depth--;
+        case 'B':
+        this->dir = DIR_X;
+        this->ccw = true;
+        this->depth *= -1;
+        this->depth--;
+    }
+
+    p++;
+    if(p < str.length()) this->ccw = !this->ccw;
 }
 Move::Move(){
     this->dir = DIR_X;
     this->depth = 0;
     this->ccw = false;
+    this->moveStr = "F";
 }
 void Move::printMove(){
-
-    char moveChar;
-
-    if(this->depth > 0) std::cout << this->depth + 1;
-    switch(this->dir){
-        case DIR_X:
-        default:
-        moveChar = 'F';
-        break;
-        case DIR_Y:
-        moveChar = 'U';
-        break;
-        case DIR_Z:
-        moveChar = 'L';
-        break;
-    }
-    std::cout << moveChar;
-    if(ccw) std::cout << '\'';
-    std::cout << ' ';
+    std::cout << this->moveStr << " ";
+    //std::cout << this->moveStr << " " << (int)this->dir << " " << this->depth << " " << this->ccw << " ";
 }
 
 void printCubie(cubie_t &cubie){

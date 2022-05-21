@@ -31,15 +31,17 @@ Cube solve_stupid(Cube cube){
                 for(unsigned long i = 0; i < cubeHeap.size(); i++){
                     delete cubeHeap[i];
                 }
-                return *currentCube;
+                Cube retCube(*currentCube);
+                delete currentCube;
+                return retCube;
             }
 
-            for(int dir = 0; dir < 3; dir++){
+            /*for(int dir = 0; dir < 3; dir++){
                 for(int n = 0; n < 4; n++){
                     cubieSet.insert(currentCube->getCubies());
                     currentCube->rotateCube(dir,false);
                 }
-            }
+            }*/
             cubieSet.insert(currentCube->getCubies());
             for(int dir = 0; dir < 3; dir++){
                 for(int depth = 0; depth < currentCube->getCubeSize(); depth++){
