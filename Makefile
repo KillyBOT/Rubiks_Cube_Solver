@@ -9,13 +9,13 @@ LDFLAGS = -g
 
 LDLIBS = 
 
-main: main.o cube.o solve_stupid.o
+main: main.o cube.o solve.o
 
-main.o: main.cpp cube.hpp
+main.o: main.cpp cube.hpp solve.hpp
 
 cube.o: cube.cpp cube.hpp
 
-solve_stupid.o: solve_stupid.cpp cube.hpp
+solve.o: solve.cpp cube.hpp solve.hpp
 
 .PHONY: clean
 clean:

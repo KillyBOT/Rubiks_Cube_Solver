@@ -6,6 +6,7 @@
 #include <ctime>
 
 #include "cube.hpp"
+#include "solve.hpp"
 
 static std::string faceStrings[] = {"Front", "Back", "Top", "Bottom", "Left", "Right"};
 static std::string colStrings[] = {"R","O","Y","W","B","G"};
@@ -35,9 +36,32 @@ Cube::Cube(int size) : cubeSize(size), faceSize(size * size) {
         }
     }
 
-    this->score = this->heuristic_stupid();
+    this->heuristicFunc = heuristic_basic;
+    this->score = this->heuristicFunc(*this);
 }
 
+Cube::Cube(int size, int (*hFunc)(Cube)) : cubeSize(size), faceSize(size * size), heuristicFunc(hFunc){
+    //6x^2 - 12x + 8 gives you the number of cubies required for cubeSize x, but I'm just doing x^3 since that's easier to program, despite it creating cubies that won't ever be used.
+    //The cubies are all only 4 bytes large though, so it's not that big of a deal
+    for(int ind = 0; ind < this->faceSize * this->cubeSize; ind++){
+        this->cubies.push_back(newCubie());
+    }
+
+    this->rings = new std::vector<std::vector<int>>[this->cubeSize * 3];
+
+    for(int dir = 0; dir < 3; dir++){
+        for(int depth = 0; depth < this->cubeSize; depth++){
+            this->rings[dir * this->cubeSize + depth] = this->makeRing(dir, depth);
+
+            /*for(std::vector<int> ring : this->rings[dir * this->cubeSize + depth]){
+                for(int ind : ring)
+                    std::cout << ind << " ";
+                std::cout << std::endl;
+            }*/
+        }
+    }
+    this->score = this->heuristicFunc(*this);
+}
 Cube::Cube(const Cube &cube) : cubeSize(cube.cubeSize) , faceSize(cube.faceSize) {
 
     this->rings = new std::vector<std::vector<int>>[this->cubeSize * 3];
@@ -50,6 +74,7 @@ Cube::Cube(const Cube &cube) : cubeSize(cube.cubeSize) , faceSize(cube.faceSize)
 
     this->cubies = cube.cubies;
     this->moves = cube.moves;
+    this->heuristicFunc = cube.heuristicFunc;
     this->score = cube.score;
 }
 
@@ -91,7 +116,6 @@ std::vector<int> Cube::getFaceInds(byte_t dir, int depth){
 
     return inds;
 }
-
 std::vector<std::vector<int>> Cube::makeRing(byte_t dir, int depth){
     std::vector<int> faceInds = this->getFaceInds(dir, depth);
     std::vector<std::vector<int>> rings;
@@ -130,9 +154,42 @@ std::vector<std::vector<int>> Cube::makeRing(byte_t dir, int depth){
 
     return rings;
 }
-
 std::vector<std::vector<int>> Cube::getRing(byte_t dir, int depth){
     return this->rings[dir * this->cubeSize + depth];
+}
+col_t Cube::getFaceCol(byte_t face, int row, int col){
+
+    while(row < 0) row += this->cubeSize;
+    while(col < 0) col += this->cubeSize;
+    while(row >= this->cubeSize) row -= this->cubeSize;
+    while(col >= this->cubeSize) col -= this->cubeSize;
+
+    std::vector<int> inds = this->getFaceInds(face / 2, (face % 2) * (this->cubeSize - 1));
+
+    int startInd = 0;
+
+    if(face == FACE_BACK || face == FACE_RIGHT){
+        startInd = this->cubeSize - 1;
+        col *= -1;
+    }
+    if(face == FACE_DOWN){
+        startInd = this->faceSize - this->cubeSize;
+        row *= -1;
+    }
+
+    return getCubieFace(this->cubies[inds[startInd + row * this->cubeSize + col]],face);
+}
+
+col_t Cube::getCubieFaceCol(byte_t face, int x, int y, int z){
+    while(x < 0) x += this->cubeSize;
+    while(y < 0) y += this->cubeSize;
+    while(z < 0) z += this->cubeSize;
+
+    while(x >= this->cubeSize) x -= this->cubeSize;
+    while(y >= this->cubeSize) y -= this->cubeSize;
+    while(z >= this->cubeSize) z -= this->cubeSize;
+
+    return getCubieFace(this->cubies[y * this->faceSize + x * this->cubeSize + z], face);
 }
 
 void Cube::printFace(byte_t dir, int depth, byte_t face){
@@ -175,7 +232,6 @@ void Cube::printFace(byte_t dir, int depth, byte_t face){
 
     
 }
-
 void Cube::printCube(){
     std::cout << "FRONT:" << std::endl;
     this->printFace(DIR_X,0,FACE_FRONT);
@@ -228,11 +284,9 @@ void Cube::rotateFace(byte_t dir, int depth, bool counterClockwise){
     }
 
 }
-
 void Cube::rotateCube(byte_t dir, bool counterClockwise){
     for(int depth = 0; depth < this->cubeSize; depth++) rotateFace(dir, depth, counterClockwise);
 }
-
 void Cube::doMove(Move move){
     
     if(move.depth >= this->cubeSize || -move.depth >= this->cubeSize) return;
@@ -240,11 +294,12 @@ void Cube::doMove(Move move){
     this->rotateFace(move.dir, move.depth, move.ccw);
     this->moves.push_back(move);
 
-    this->score = this->heuristic_stupid();
-}
+    this->score = this->heuristicFunc(*this);
 
+    //this->printCube();
+}
 void Cube::doMoves(std::vector<Move> moves){
-    for(Move move : moves) this->doMove(move);
+    for(Move move : moves)this->doMove(move);
 }
 void Cube::randomize(int randomMoveNum){
     std::srand(std::time(nullptr));
@@ -264,12 +319,12 @@ void Cube::randomize(int randomMoveNum){
     }
     std::cout << std::endl;
 
-    this->score = this->heuristic_stupid();
+    this->score = this->heuristicFunc(*this);
 }
 
-int Cube::heuristic_stupid(){
+/*int Cube::heuristic_stupid(){
 
-    /*int lowestScore = 6 * this->faceSize - 12 * this->cubeSize + 9;
+    int lowestScore = 6 * this->faceSize - 12 * this->cubeSize + 9;
     int score;
     cubie_t testCubie = newCubie();
 
@@ -292,7 +347,7 @@ int Cube::heuristic_stupid(){
 
             rotateCubie(testCubie,dir,false);
         }
-    }*/
+    }
 
     int lowestScore = 6 * this->faceSize;
 
@@ -307,31 +362,32 @@ int Cube::heuristic_stupid(){
     //return this->moves.size();
     return lowestScore + this->moves.size();
 }
+*/
 
 bool Cube::isComplete(){
     /*cubie_t checkCubie = this->cubies[0];
 
     for(int ind = 1; ind < this->cubeSize * this->faceSize; ind++){
         if(this->cubies[ind] != checkCubie) return false;
-    }*/
-
-    return (this->score - this->moves.size()) == 0;
-}
-
-/*bool Cube::isValid(){
-    int colorNum[6] = {0,0,0,0,0,0};
-
-    for(int ind = 0; ind < this->cubeSize * this->faceSize; ind++){
-        for(int face = 0; face < 6; face++){
-            colorNum[getCubieFace(this->cubies[ind], face)]++;
-        }
     }
-    for(int col = 0; col < 6; col++){
-        if(colorNum[col] != this->cubeSize * this->faceSize) return false;
+
+    return true;*/
+
+    /*cubie_t checkCubie = newCubie();
+
+    for(cubie_t cubie : this->cubies){
+        if(cubie != checkCubie) return false;
+    }
+    return true;*/
+
+    for(byte_t face = 0; face < 6; face++){
+        for(int ind = 0; ind < this->faceSize; ind++){
+            if(face != this->getFaceCol(face, ind / this->cubeSize, ind % this->cubeSize)) return false;
+        }
     }
 
     return true;
-}*/
+}
 
 void Cube::printMoves(){
     for(Move move: this->moves){
@@ -350,7 +406,7 @@ void Cube::reverseFromMoves(){
         this->moves.pop_back();
     }
 
-    this->score = this->heuristic_stupid();
+    this->score = this->heuristicFunc(*this);
 }
 
 Move::Move(byte_t dir, int depth, bool ccw){
@@ -408,16 +464,19 @@ Move::Move(std::string str){
         break;
         case 'L':
         this->dir = DIR_Z;
+        break;
         case 'D':
         this->dir = DIR_Y;
         this->ccw = true;
         this->depth *= -1;
         this->depth--;
+        break;
         case 'B':
         this->dir = DIR_X;
         this->ccw = true;
         this->depth *= -1;
         this->depth--;
+        break;
     }
 
     p++;
@@ -432,6 +491,25 @@ Move::Move(){
 void Move::printMove(){
     std::cout << this->moveStr << " ";
     //std::cout << this->moveStr << " " << (int)this->dir << " " << this->depth << " " << this->ccw << " ";
+}
+std::vector<Move> getMovesFromStr(std::string str){
+    std::vector<Move> moves;
+
+    size_t start = 0;
+    size_t len;
+
+    do{
+        len = 0;
+        while(!isalpha(str[start + len])) len++;
+
+        len++;
+        if(start + len < str.size() && str[start+len] == '\'') len++;
+
+        moves.push_back(Move(str.substr(start,len)));
+        start += len;
+    } while (start < str.size());
+
+    return moves;
 }
 
 void printCubie(cubie_t &cubie){

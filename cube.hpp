@@ -46,6 +46,9 @@ class Cube {
     std::vector<std::vector<int>> *rings;
     std::vector<Move> moves;
 
+    int (*heuristicFunc)(Cube);
+    int score;
+
     std::vector<int> getFaceInds(byte_t, int);
     std::vector<std::vector<int>> makeRing(byte_t, int);
     std::vector<std::vector<int>> getRing(byte_t, int);
@@ -54,13 +57,10 @@ class Cube {
     void rotateFace(byte_t, int, bool);
     //bool isValid();
 
-    int heuristic_stupid();
-
     public:
 
-    int score;
-
     Cube(int);
+    Cube(int, int(*)(Cube));
     Cube(const Cube&);
     ~Cube();
 
@@ -69,6 +69,9 @@ class Cube {
     int getCubeSize() {return this->cubeSize;}
     std::vector<cubie_t> getCubies() {return this->cubies;}
     std::vector<Move> getMoves() {return this->moves;}
+    int getScore() {return this->score;}
+    col_t getCubieFaceCol(byte_t, int, int, int);
+    col_t getFaceCol(byte_t, int, int);
 
     void rotateCube(byte_t, bool);
     void randomize(int);
@@ -79,8 +82,7 @@ class Cube {
 
 };
 
-Cube solve_stupid(Cube cube);
-bool compare_stupid(const Cube *c1, const Cube *c2);
+std::vector<Move> getMovesFromStr(std::string);
 
 cubie_t newCubie();
 void printCubie(cubie_t&);

@@ -2,6 +2,7 @@
 #include <string>
 
 #include "cube.hpp"
+#include "solve.hpp"
 
 int main()
 {
@@ -27,6 +28,8 @@ int main()
 
     Cube cube(3);
     cube.printCube();
+    std::cout << cube.isComplete() << std::endl;
+    //std::cout << cube.getFaceCol(FACE_DOWN, 1, 1) << std::endl;
     //std::cout << cube.score << std::endl;
 
     /*for(int dir = 0; dir < 3; dir++){
@@ -46,11 +49,28 @@ int main()
     testMove.printMove();
     std::cout << std::endl;*/
 
-    cube.randomize(3);
+    cube.randomize(6);
     cube.printCube();
+    //cube.doMoves(getReverseMoves(cube.getMoves()));
+    //cube.printCube();
+
+    //cube.doMoves(getMovesFromStr(z_perm));
+    //cube.printCube();
+    //cube.printMoves();
+    /*for(byte_t face = 0; face < 6; face++){
+        for(int row = 0; row < cube.getCubeSize(); row++){
+            for(int col = 0; col < cube.getCubeSize(); col++){
+                std::cout << (int)cube.getFaceCol(face, row, col) << " ";
+            }
+            std::cout << std::endl;
+        }
+    }*/
     //std::cout << cube.score << std::endl;
 
-    Cube solvedCube = solve_stupid(cube);
+    //Cube solvedCube = solve_bfs(cube);
+    //solvedCube.printMoves();
+
+    Cube solvedCube = solve_astar(cube);
     solvedCube.printMoves();
 
     return 0;
