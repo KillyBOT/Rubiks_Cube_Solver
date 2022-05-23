@@ -29,6 +29,7 @@ int main()
     Cube cube(3);
     cube.printCube();
     std::cout << cube.isComplete() << std::endl;
+    std::cout << cube.isOriented() << std::endl;
     //std::cout << cube.getFaceCol(FACE_DOWN, 1, 1) << std::endl;
     //std::cout << cube.score << std::endl;
 
@@ -50,6 +51,7 @@ int main()
     std::cout << std::endl;*/
 
     cube.randomize(6);
+    std::cout << heuristic_orientation(cube) << std::endl;
     cube.printCube();
     //cube.doMoves(getReverseMoves(cube.getMoves()));
     //cube.printCube();
@@ -69,6 +71,10 @@ int main()
 
     //Cube solvedCube = solve_bfs(cube);
     //solvedCube.printMoves();
+
+    //Cube orientedCube = orient_astar(cube);
+    //orientedCube.printCube();
+    //orientedCube.printMoves();
 
     Cube solvedCube = solve_astar(cube);
     //Cube solvedCube = solve_astar_3(cube);

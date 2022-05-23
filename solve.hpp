@@ -15,8 +15,10 @@ struct cubieHash {
 
 Cube solve_bfs(Cube);
 Cube solve_astar(Cube);
-
 Cube solve_astar_3(Cube); //Astar, but only for a 3x3 cube.
+
+Cube orient_astar(Cube);
+Cube solve_orientd_astar(Cube);
 
 void reduce_to_3x3(Cube&);
 void bottom_cross(Cube&);

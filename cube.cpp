@@ -293,6 +293,18 @@ void Cube::rotateFace(byte_t dir, int depth, bool counterClockwise){
 void Cube::rotateCube(byte_t dir, bool counterClockwise){
     for(int depth = 0; depth < this->cubeSize; depth++) rotateFace(dir, depth, counterClockwise);
 }
+void Cube::fixOrientation(){
+    for(int i = 0; i < 4; i++){
+        if(this->getFaceCol(FACE_FRONT,1,1) == COL_RED) break;
+        this->rotateCube(DIR_Y,false);
+    }
+    this->rotateCube(DIR_X, false);
+    for(int i = 0; i < 4; i++){
+        if(this->getFaceCol(FACE_FRONT,1,1) == COL_RED) break;
+        this->rotateCube(DIR_Y,false);
+    }
+    while(this->getFaceCol(FACE_UP,1,1) != COL_YELLOW) this->rotateCube(DIR_X, false);
+}
 void Cube::doMove(Move move, bool addToMoves){
     
     if(move.depth >= this->cubeSize || -move.depth >= this->cubeSize) return;
@@ -379,13 +391,11 @@ bool Cube::isComplete(){
     }
     return true;*/
 
-    for(byte_t face = 0; face < 6; face++){
-        for(int ind = 0; ind < this->faceSize; ind++){
-            if(face != this->getFaceCol(face, ind / this->cubeSize, ind % this->cubeSize)) return false;
-        }
-    }
+    return !(heuristic_basic(*this) - 4 * this->cubeSize * this->moves.size());
+}
 
-    return true;
+bool Cube::isOriented(){
+    return !(heuristic_orientation(*this) - this->moves.size());
 }
 
 void Cube::printMoves(){
