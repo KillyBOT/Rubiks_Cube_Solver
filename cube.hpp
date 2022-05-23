@@ -64,6 +64,8 @@ class Cube {
     Cube(const Cube&);
     ~Cube();
 
+    bool operator==(const Cube&);
+
     void printCube();
     bool isComplete();
     int getCubeSize() {return this->cubeSize;}

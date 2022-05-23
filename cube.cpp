@@ -39,7 +39,6 @@ Cube::Cube(int size) : cubeSize(size), faceSize(size * size) {
     this->heuristicFunc = heuristic_basic;
     this->score = this->heuristicFunc(*this);
 }
-
 Cube::Cube(int size, int (*hFunc)(Cube)) : cubeSize(size), faceSize(size * size), heuristicFunc(hFunc){
     //6x^2 - 12x + 8 gives you the number of cubies required for cubeSize x, but I'm just doing x^3 since that's easier to program, despite it creating cubies that won't ever be used.
     //The cubies are all only 4 bytes large though, so it's not that big of a deal
@@ -77,9 +76,12 @@ Cube::Cube(const Cube &cube) : cubeSize(cube.cubeSize) , faceSize(cube.faceSize)
     this->heuristicFunc = cube.heuristicFunc;
     this->score = cube.score;
 }
-
 Cube::~Cube(){
     delete[] this->rings;
+}
+
+bool Cube::operator==(const Cube& cube){
+    return this->cubies == cube.cubies;
 }
 
 std::vector<int> Cube::getFaceInds(byte_t dir, int depth){
@@ -315,7 +317,7 @@ void Cube::randomize(int randomMoveNum){
 
     for(Move move: moves){
         move.printMove();
-        this->moves.push_back(move);
+        //this->moves.push_back(move);
     }
     std::cout << std::endl;
 

@@ -12,6 +12,8 @@ bool compare_cube(Cube *c1, Cube *c2);
 Cube solve_bfs(Cube);
 Cube solve_astar(Cube);
 
+Cube solve_astar_3(Cube); //Astar, but only for a 3x3 cube.
+
 void reduce_to_3x3(Cube&);
 void bottom_cross(Cube&);
 

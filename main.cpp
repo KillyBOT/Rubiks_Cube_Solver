@@ -49,7 +49,7 @@ int main()
     testMove.printMove();
     std::cout << std::endl;*/
 
-    cube.randomize(6);
+    cube.randomize(5);
     cube.printCube();
     //cube.doMoves(getReverseMoves(cube.getMoves()));
     //cube.printCube();

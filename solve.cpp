@@ -97,6 +97,76 @@ Cube solve_astar(Cube cube){
 
     std::vector<Cube*> cubeHeap;
 
+    std::map<std::vector<cubie_t>,size_t> gScores;
+    Cube *currentCube;
+    bool search;
+
+    cubeHeap.push_back(new Cube(cube));
+
+    while(cubeHeap.size()){
+
+        currentCube = cubeHeap.front();
+
+        std::pop_heap(cubeHeap.begin(), cubeHeap.end(), compare_cube);
+        cubeHeap.pop_back();
+
+        search = !gScores.count(currentCube->getCubies()) || currentCube->getMoves().size() < gScores[currentCube->getCubies()];
+
+        if(search){
+
+            //currentCube->printCube();
+
+            if(currentCube->isComplete()){
+                for(unsigned long i = 0; i < cubeHeap.size(); i++){
+                    delete cubeHeap[i];
+                }
+                Cube retCube(*currentCube);
+                delete currentCube;
+                return retCube;
+            }
+
+            gScores[currentCube->getCubies()] = currentCube->getMoves().size();
+
+            for(int dir = 0; dir < 3; dir++){
+                for(int depth = 0; depth < currentCube->getCubeSize(); depth++){
+                    for(int ccw = 0; ccw < 2; ccw++){
+                        Cube *newCube = new Cube(*currentCube);
+                        newCube->doMove(Move(dir, depth, ccw));
+                        cubeHeap.push_back(newCube);
+                        std::push_heap(cubeHeap.begin(),cubeHeap.end(), compare_cube);
+
+                        //for(Cube c : cubeHeap) c.printCube();
+                    }
+                }
+            }
+        }
+
+        delete currentCube;
+
+    }
+
+    std::cout << "You should never see this" << std::endl;
+    return cube;
+
+}
+
+Cube solve_astar_3(Cube cube){
+
+    for(int i = 0; i < 4; i++){
+        if(cube.getFaceCol(FACE_FRONT,1,1) == COL_RED) break;
+        cube.rotateCube(DIR_Y,false);
+    }
+    cube.rotateCube(DIR_X, false);
+    for(int i = 0; i < 4; i++){
+        if(cube.getFaceCol(FACE_FRONT,1,1) == COL_RED) break;
+        cube.rotateCube(DIR_Y,false);
+    }
+    while(cube.getFaceCol(FACE_UP,1,1) != COL_YELLOW) cube.rotateCube(DIR_X, false);
+
+    std::vector<Cube*> cubeHeap;
+
+    std::vector<Move> moves = getMovesFromStr("FF\'BB\'UU\'DD\'LL\'RR\'");
+
     std::map<std::vector<cubie_t>,int> cubeScores;
     Cube *currentCube;
     bool search;
@@ -132,19 +202,13 @@ Cube solve_astar(Cube cube){
                 }
             }*/
             cubeScores.insert(std::pair<std::vector<cubie_t>,int>(currentCube->getCubies(),currentCube->getScore()));
-
-            for(int dir = 0; dir < 3; dir++){
-                for(int depth = 0; depth < currentCube->getCubeSize(); depth++){
-                    for(int ccw = 0; ccw < 2; ccw++){
-                        Cube *newCube = new Cube(*currentCube);
-                        newCube->doMove(Move(dir, depth, ccw));
-                        cubeHeap.push_back(newCube);
-                        std::push_heap(cubeHeap.begin(),cubeHeap.end(), compare_cube);
-
-                        //for(Cube c : cubeHeap) c.printCube();
-                    }
-                }
+            for(Move move: moves){
+                Cube *newCube = new Cube(*currentCube);
+                newCube->doMove(move);
+                cubeHeap.push_back(newCube);
+                std::push_heap(cubeHeap.begin(), cubeHeap.end(), compare_cube);
             }
+            
         }
 
         delete currentCube;
