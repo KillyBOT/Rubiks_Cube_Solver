@@ -30,16 +30,19 @@ using cubie_t = uint32_t;
 struct Move {
     byte_t dir;
     int depth;
+    int num;
     bool ccw;
     std::string moveStr;
 
     Move();
     Move(byte_t, int, bool);
+    Move(byte_t, int, int, bool);
     Move(std::string);
     void printMove();
 };
 
 class Cube {
+
     std::vector<cubie_t> cubies;
     int cubeSize;
     int faceSize;
@@ -47,7 +50,7 @@ class Cube {
     std::vector<Move> moves;
 
     int (*heuristicFunc)(Cube);
-    int score;
+    //int score;
 
     std::vector<int> getFaceInds(byte_t, int);
     std::vector<std::vector<int>> makeRing(byte_t, int);
@@ -71,14 +74,15 @@ class Cube {
     int getCubeSize() {return this->cubeSize;}
     std::vector<cubie_t> getCubies() {return this->cubies;}
     std::vector<Move> getMoves() {return this->moves;}
-    int getScore() {return this->score;}
+    int getScore() {return this->heuristicFunc(*this);}
     col_t getCubieFaceCol(byte_t, int, int, int);
     col_t getFaceCol(byte_t, int, int);
 
+    void setHeuristicFunc(int (*)(Cube));
     void rotateCube(byte_t, bool);
     void randomize(int);
-    void doMove(Move);
-    void doMoves(std::vector<Move>);
+    void doMove(Move, bool = true);
+    void doMoves(std::vector<Move>, bool = true);
     void printMoves();
     void reverseFromMoves();
 

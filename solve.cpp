@@ -1,6 +1,8 @@
 #include <iostream>
 #include <set>
 #include <map>
+#include <unordered_set>
+#include <unordered_map>
 #include <queue>
 #include <vector>
 #include <algorithm>
@@ -8,6 +10,19 @@
 
 #include "cube.hpp"
 #include "solve.hpp"
+
+//Taken from stackoverflow from user named Thomas Mueller
+size_t cubieHash::operator()(const std::vector<cubie_t> &cubies) const {
+    size_t seed = cubies.size();
+    for(cubie_t cubie : cubies){
+        cubie = ((cubie >> 16) ^ cubie) * 0x45d9f3b;
+        cubie = ((cubie >> 16) ^ cubie) * 0x45d9f3b;
+        cubie = (cubie >> 16) ^ cubie;
+        seed ^= cubie + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+
+    return seed;
+}
 
 bool compare_cube(Cube *c1, Cube *c2){
     return c1->getScore() > c2->getScore();
@@ -97,9 +112,14 @@ Cube solve_astar(Cube cube){
 
     std::vector<Cube*> cubeHeap;
 
-    std::map<std::vector<cubie_t>,size_t> gScores;
+    std::unordered_set<std::vector<cubie_t>,cubieHash> cubeSet;
+    std::unordered_set<std::vector<cubie_t>,cubieHash> gScoresSet;
+    std::unordered_map<std::vector<cubie_t>,size_t,cubieHash> gScores;
     Cube *currentCube;
-    bool search;
+
+    cubeSet.insert(cube.getCubies());
+    gScoresSet.insert(cube.getCubies());
+    gScores[cube.getCubies()] = 0;
 
     cubeHeap.push_back(new Cube(cube));
 
@@ -110,33 +130,41 @@ Cube solve_astar(Cube cube){
         std::pop_heap(cubeHeap.begin(), cubeHeap.end(), compare_cube);
         cubeHeap.pop_back();
 
-        search = !gScores.count(currentCube->getCubies()) || currentCube->getMoves().size() < gScores[currentCube->getCubies()];
-
-        if(search){
-
-            //currentCube->printCube();
-
-            if(currentCube->isComplete()){
-                for(unsigned long i = 0; i < cubeHeap.size(); i++){
-                    delete cubeHeap[i];
-                }
-                Cube retCube(*currentCube);
-                delete currentCube;
-                return retCube;
+        if(currentCube->isComplete()){
+            for(unsigned long i = 0; i < cubeHeap.size(); i++){
+                delete cubeHeap[i];
             }
+            Cube retCube(*currentCube);
+            delete currentCube;
+            return retCube;
+        }
 
-            gScores[currentCube->getCubies()] = currentCube->getMoves().size();
+        cubeSet.erase(currentCube->getCubies());
 
-            for(int dir = 0; dir < 3; dir++){
-                for(int depth = 0; depth < currentCube->getCubeSize(); depth++){
-                    for(int ccw = 0; ccw < 2; ccw++){
-                        Cube *newCube = new Cube(*currentCube);
-                        newCube->doMove(Move(dir, depth, ccw));
-                        cubeHeap.push_back(newCube);
-                        std::push_heap(cubeHeap.begin(),cubeHeap.end(), compare_cube);
+        for(int dir = 0; dir < 3; dir++){
+            for(int depth = 0; depth < currentCube->getCubeSize(); depth++){
+                for(int ccw = 0; ccw < 3; ccw++){
+                    Cube *newCube = new Cube(*currentCube);
+                    newCube->doMove(Move(dir, depth, (ccw / 2) + 1, ccw % 2));
 
-                        //for(Cube c : cubeHeap) c.printCube();
+                    if(!gScoresSet.count(newCube->getCubies()) || newCube->getMoves().size() < gScores[newCube->getCubies()]){
+                        gScoresSet.insert(newCube->getCubies());
+                        gScores.insert(std::pair<std::vector<cubie_t>,size_t>(newCube->getCubies(),newCube->getMoves().size()));
+
+                        if(!cubeSet.count(newCube->getCubies())){
+                            cubeSet.insert(newCube->getCubies());
+
+                            cubeHeap.push_back(newCube);
+                            std::push_heap(cubeHeap.begin(), cubeHeap.end(), compare_cube);
+
+                        } else {
+                            delete newCube;
+                        }
+                    } else {
+                        delete newCube;
                     }
+                    
+                    //for(Cube *c : cubeHeap) c->printCube();
                 }
             }
         }
@@ -163,13 +191,20 @@ Cube solve_astar_3(Cube cube){
     }
     while(cube.getFaceCol(FACE_UP,1,1) != COL_YELLOW) cube.rotateCube(DIR_X, false);
 
+    cube.printCube();
+
+    std::vector<Move> moves = getMovesFromStr("F F2 F\' B B2 B\' U U2 U\' D D2 D\' L L2 L\' R R2 R\'");
+
     std::vector<Cube*> cubeHeap;
 
-    std::vector<Move> moves = getMovesFromStr("FF\'BB\'UU\'DD\'LL\'RR\'");
-
-    std::map<std::vector<cubie_t>,int> cubeScores;
+    std::unordered_set<std::vector<cubie_t>,cubieHash> cubeSet;
+    std::unordered_set<std::vector<cubie_t>,cubieHash> gScoresSet;
+    std::unordered_map<std::vector<cubie_t>,size_t,cubieHash> gScores;
     Cube *currentCube;
-    bool search;
+
+    cubeSet.insert(cube.getCubies());
+    gScoresSet.insert(cube.getCubies());
+    gScores[cube.getCubies()] = 0;
 
     cubeHeap.push_back(new Cube(cube));
 
@@ -180,35 +215,39 @@ Cube solve_astar_3(Cube cube){
         std::pop_heap(cubeHeap.begin(), cubeHeap.end(), compare_cube);
         cubeHeap.pop_back();
 
-        search = !cubeScores.count(currentCube->getCubies()) || currentCube->getScore() < cubeScores[currentCube->getCubies()];
-
-        if(search){
-
-            //currentCube->printCube();
-
-            if(currentCube->isComplete()){
-                for(unsigned long i = 0; i < cubeHeap.size(); i++){
-                    delete cubeHeap[i];
-                }
-                Cube retCube(*currentCube);
-                delete currentCube;
-                return retCube;
+        if(currentCube->isComplete()){
+            for(unsigned long i = 0; i < cubeHeap.size(); i++){
+                delete cubeHeap[i];
             }
+            Cube retCube(*currentCube);
+            delete currentCube;
+            return retCube;
+        }
 
-            /*for(int dir = 0; dir < 3; dir++){
-                for(int n = 0; n < 4; n++){
-                    cubieSet.insert(currentCube->getCubies());
-                    currentCube->rotateCube(dir,false);
+        cubeSet.erase(currentCube->getCubies());
+
+        for(Move move: moves) {
+            Cube *newCube = new Cube(*currentCube);
+            newCube->doMove(move);
+
+            if(!gScoresSet.count(newCube->getCubies()) || newCube->getMoves().size() < gScores[newCube->getCubies()]){
+                gScoresSet.insert(newCube->getCubies());
+                gScores.insert(std::pair<std::vector<cubie_t>,size_t>(newCube->getCubies(),newCube->getMoves().size()));
+
+                if(!cubeSet.count(newCube->getCubies())){
+                    cubeSet.insert(newCube->getCubies());
+
+                    cubeHeap.push_back(newCube);
+                    std::push_heap(cubeHeap.begin(), cubeHeap.end(), compare_cube);
+
+                } else {
+                    delete newCube;
                 }
-            }*/
-            cubeScores.insert(std::pair<std::vector<cubie_t>,int>(currentCube->getCubies(),currentCube->getScore()));
-            for(Move move: moves){
-                Cube *newCube = new Cube(*currentCube);
-                newCube->doMove(move);
-                cubeHeap.push_back(newCube);
-                std::push_heap(cubeHeap.begin(), cubeHeap.end(), compare_cube);
+            } else {
+                delete newCube;
             }
             
+            //for(Cube *c : cubeHeap) c->printCube();
         }
 
         delete currentCube;

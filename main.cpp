@@ -49,7 +49,7 @@ int main()
     testMove.printMove();
     std::cout << std::endl;*/
 
-    cube.randomize(5);
+    cube.randomize(6);
     cube.printCube();
     //cube.doMoves(getReverseMoves(cube.getMoves()));
     //cube.printCube();
@@ -71,6 +71,7 @@ int main()
     //solvedCube.printMoves();
 
     Cube solvedCube = solve_astar(cube);
+    //Cube solvedCube = solve_astar_3(cube);
     solvedCube.printMoves();
 
     return 0;
