@@ -22,4 +22,6 @@ struct Move {
 
 std::vector<Move> getMovesFromStr(std::string);
 
+const std::string basicMoveStr = "F F2 F\' B B2 B\' U U2 U\' D D2 D\' L L2 L\' R R2 R\'";
+
 #endif

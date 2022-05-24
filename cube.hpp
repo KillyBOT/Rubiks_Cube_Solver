@@ -28,7 +28,7 @@ class Cube {
 
     public:
 
-    Cube(int);
+    Cube(int = 3);
     Cube(int, int(*)(Cube));
     Cube(const Cube&);
     ~Cube();
