@@ -1,7 +1,9 @@
 CC = g++
 CXX = g++
 
-INCLUDES  = 
+INCLUDES = 
+DEPS = cubie.hpp move.hpp cube.hpp solve.hpp
+OBJ = main.o cubie.o move.o cube.o solve.o
 
 CXXFLAGS = -g -Wall $(INCLUDES)
 
@@ -9,13 +11,11 @@ LDFLAGS = -g
 
 LDLIBS = 
 
-main: main.o cube.o solve.o
+main: $(OBJ)
+	$(CXX) -o $@ $^ $(CXXFLAGS)
 
-main.o: main.cpp cube.hpp solve.hpp
-
-cube.o: cube.cpp cube.hpp
-
-solve.o: solve.cpp cube.hpp solve.hpp
+%.o: %.cpp $(DEPS)
+	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 .PHONY: clean
 clean:
