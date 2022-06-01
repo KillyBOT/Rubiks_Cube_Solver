@@ -1,0 +1,8 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory '/home/killbis/Documents/Programming_Projects/C_CPP_Projects/thistlethwaite'
+g++ -g -Wall   -c -o main.o main.cpp
+g++ -g -Wall   -c -o thistlethwaite.o thistlethwaite.cpp
+g++ -g -Wall   -c -o cube.o cube.cpp
+g++ -g  main.o thistlethwaite.o cube.o   -o main
+make: Leaving directory '/home/killbis/Documents/Programming_Projects/C_CPP_Projects/thistlethwaite'
+ 
