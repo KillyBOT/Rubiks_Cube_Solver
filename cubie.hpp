@@ -33,4 +33,6 @@ col_t getCubieFace(cubie_t, byte_t);
 void setCubieFace(cubie_t&, byte_t, col_t);
 void rotateCubie(cubie_t&, byte_t, bool);
 
+bool cubieOriented(cubie_t);
+
 #endif

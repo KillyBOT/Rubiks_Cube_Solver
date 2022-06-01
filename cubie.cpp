@@ -59,3 +59,11 @@ void rotateCubie(cubie_t &cubie, byte_t dir, bool counterClockwise){
     }
     
 }
+
+bool cubieOriented(cubie_t cubie){
+    col_t up = getCubieFace(cubie, FACE_UP);
+
+    if(up == FACE_UP || up == FACE_DOWN) return true;
+
+    return false;
+}

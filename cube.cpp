@@ -392,6 +392,21 @@ bool Cube::isOriented(){
     return !(heuristic_orientation(*this) - this->moves.size());
 }
 
+bool Cube::facesOriented(){
+    for(int dir = 0; dir < 3; dir++){
+        for(int depth = 0; depth < this->cubeSize; depth += this->cubeSize-1){
+            for(int ringInd = 1; ringInd < this->rings[dir * this->cubeSize + depth].size(); ringInd++){
+                for(int ind : this->rings[dir * this->cubeSize + depth][ringInd]){
+                    if(!cubieOriented(this->cubies[ind])) return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+
+
 void Cube::printMoves(){
     for(Move move: this->moves){
         move.printMove();

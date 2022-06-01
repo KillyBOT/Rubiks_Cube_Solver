@@ -160,6 +160,11 @@ class Cube {
     void printOrientations();
 
     void setCompact();
+    void setCorner(int, corner_t);
+    void setEdge(int, edge_t);
+    corner_t getCorner(int);
+    edge_t getEdge(int); 
+
     void doMove(move_t, bool = true, bool = false);
     void doMoves(std::vector<move_t>, bool = true, bool = false);
     void randomize(int = 50, bool = false);
@@ -177,13 +182,10 @@ std::array<face_t,2> get_edge_face(edge_t);
 char get_face_char(face_t);
 
 move_t get_move_opposite(move_t);
+std::vector<move_t> get_moves_opposite(std::vector<move_t>);
 move_t get_move_from_str(std::string);
 std::string get_str_from_move(move_t);
 std::vector<move_t> get_moves_from_str(std::string);
 std::string get_str_from_moves(std::vector<move_t>);
-
-std::unordered_map<compact_t,compact_t> generate_move_map();
-void write_move_map(std::string, std::unordered_map<compact_t,compact_t>);
-std::unordered_map<compact_t,compact_t> read_move_map(std::string);
 
 #endif

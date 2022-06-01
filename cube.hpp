@@ -38,6 +38,9 @@ class Cube {
     void printCube();
     bool isComplete();
     bool isOriented();
+    bool facesOriented();
+    bool edgesOriented();
+    bool cornersOriented();
     int getCubeSize() {return this->cubeSize;}
     std::vector<cubie_t> getCubies() {return this->cubies;}
     std::vector<Move> getMoves() {return this->moves;}

@@ -2,7 +2,7 @@
 #include <string>
 #include <array>
 #include <fstream>
-#include <unordered_set>
+#include <unordered_map>
 #include <queue>
 
 #include <ctime>
@@ -77,96 +77,6 @@ std::array<face_t,3> get_corner_face(corner_t corner){
         faces[inds[kDirR]] = kR;
         break;
     }
-
-    /*bool swapInds = ((int)corner + ind) % 2;
-    if(swapInds) std::cout << "swap" << std::endl;
-
-    //Just took this from the medium article, would've been annoying to code otherwise
-    //Also, thanks for saying that the cubie naming was "arbitrary"
-
-    if(ori == 0){
-        inds[kDirY] = kDirY;
-
-        if(swapInds){
-            inds[kDirX] = kDirZ;
-            inds[kDirZ] = kDirX;
-        } else {
-            inds[kDirX] = kDirX;
-            inds[kDirZ] = kDirZ;
-        }
-    }
-    else if(ori == 1){
-        inds[kDirZ] = kDirY;
-
-        if(swapInds){
-            inds[kDirX] = kDirX;
-            inds[kDirY] = kDirZ;
-        } else {
-            inds[kDirX] = kDirZ;
-            inds[kDirY] = kDirX;
-        }
-    }
-    else{ //ori == 2
-        std::cout << "test" << std::endl;
-        inds[kDirX] = kDirY;
-
-        if(swapInds){
-            inds[kDirY] = kDirX;
-            inds[kDirZ] = kDirZ;
-        } else {
-            inds[kDirY] = kDirZ;
-            inds[kDirZ] = kDirX;
-        }
-    }
-
-    std::cout << inds[kDirX] << '\t' << inds[kDirY] << '\t' << inds[kDirZ] << std::endl;
-
-    switch(corner){
-        case kFUL:
-        faces[inds[kDirX]] = kL;
-        faces[inds[kDirY]] = kU;
-        faces[inds[kDirZ]] = kF;
-        break;
-        case kBUL:
-        faces[inds[kDirX]] = kL;
-        faces[inds[kDirY]] = kU;
-        faces[inds[kDirZ]] = kB;
-        break;
-        case kBUR:
-        faces[inds[kDirX]] = kR;
-        faces[inds[kDirY]] = kU;
-        faces[inds[kDirZ]] = kB;
-        break;
-        case kFUR:
-        faces[inds[kDirX]] = kR;
-        faces[inds[kDirY]] = kU;
-        faces[inds[kDirZ]] = kF;
-        break;
-        case kFDR:
-        faces[inds[kDirX]] = kR;
-        faces[inds[kDirY]] = kD;
-        faces[inds[kDirZ]] = kF;
-        break;
-        case kFDL:
-        faces[inds[kDirX]] = kL;
-        faces[inds[kDirY]] = kD;
-        faces[inds[kDirZ]] = kF;
-        break;
-        case kBDL:
-        faces[inds[kDirX]] = kL;
-        faces[inds[kDirY]] = kD;
-        faces[inds[kDirZ]] = kB;
-        break;
-        case kBDR:
-        faces[inds[kDirX]] = kR;
-        faces[inds[kDirY]] = kD;
-        faces[inds[kDirZ]] = kB;
-        break;
-    }
-
-    std::cout << get_face_char(faces[inds[kDirX]]) << '\t' << get_face_char(faces[inds[kDirY]]) << '\t' << get_face_char(faces[inds[kDirZ]]) << std::endl;*/
-
-    //for(int dir = 0; dir < 3; dir++) faces[dir] = inds[dir] * 2 + ((corner >> inds[dir]) & 1);
 
     return faces;
 }
@@ -264,6 +174,17 @@ move_t get_move_opposite(move_t move){
     return move ^ 3;
 }
 
+std::vector<move_t> get_move_opposite(std::vector<move_t> moves){
+    std::vector<move_t> invMoves;
+
+    while(moves.size()){
+        invMoves.push_back(get_move_opposite(moves.back()));
+        moves.pop_back();
+    }
+
+    return invMoves;
+}
+
 move_t get_move_from_str(std::string str){
     move_t move;
     switch(str[0]){
@@ -359,6 +280,11 @@ Cube::Cube(compact_t compact){
         compact >>= 5;
     }
 }
+
+void Cube::setCorner(int ind, corner_t corner) {this->corners[ind] = corner;}
+void Cube::setEdge(int ind, edge_t edge) {this->edges[ind] = edge;}
+corner_t Cube::getCorner(int ind) {return this->corners[ind];}
+edge_t Cube::getEdge(int ind) {return this->edges[ind];}
 
 void Cube::printCube(bool printSolved){
 
@@ -559,90 +485,4 @@ void Cube::setCompact(){
 
 compact_t Cube::getCompact(){
     return this->compact;
-}
-
-std::unordered_map<compact_t,compact_t> generate_move_map(){
-    std::unordered_map<compact_t,compact_t> moveMap;
-
-    std::queue<compact_t> cubeQueue;
-
-    compact_t cubeMoveToAdd;
-    Cube currentCube;
-
-    std::vector<move_t> moves = get_moves_from_str("F F\' F2 B B\' B2 U U\' U2 D D\' D2 L L\' L2 R R\' R2");
-
-    cubeQueue.push(currentCube.getCompact());
-
-    while(cubeQueue.size()){
-
-        std::cout << cubeQueue.size() << std::endl;
-        
-        for(move_t move : moves){
-            cubeMoveToAdd = cubeQueue.front();
-            cubeMoveToAdd <<= 8;
-            cubeMoveToAdd |= move;
-            if(!moveMap.count(cubeMoveToAdd)){
-                currentCube = Cube(cubeQueue.front());
-                currentCube.doMove(move);
-                moveMap.insert(std::pair<compact_t,compact_t>(cubeMoveToAdd,currentCube.getCompact()));
-                cubeQueue.push(currentCube.getCompact());
-            }
-        }
-
-        cubeQueue.pop();
-    }
-
-    return moveMap;
-}
-
-void write_move_map(std::string filename, std::unordered_map<compact_t,compact_t> moveMap){
-    std::ofstream fs;
-    fs.open(filename, std::ios::out | std::ios::binary);
-
-    uint64_t toWrite;
-
-    for(std::pair<compact_t,compact_t> movePair : moveMap){
-        toWrite = movePair.first >> 64;
-        fs.write((char*)&toWrite,sizeof(toWrite));
-        toWrite = movePair.first & 0xFFFFFFFFFFFFFFFF;
-        fs.write((char*)&toWrite,sizeof(toWrite));
-
-        toWrite = movePair.second >> 64;
-        fs.write((char*)&toWrite,sizeof(toWrite));
-        toWrite = movePair.second & 0xFFFFFFFFFFFFFFFF;
-        fs.write((char*)&toWrite,sizeof(toWrite));
-    }
-
-    fs.close();
-}
-
-std::unordered_map<compact_t,compact_t> read_move_map(std::string filename){
-    std::ifstream fs;
-    fs.open(filename, std::ios::in | std::ios::binary);
-
-    std::unordered_map<compact_t,compact_t> moveMap;
-
-    uint64_t toRead;
-    compact_t key;
-    compact_t val;
-
-    while(!fs.eof()){
-        fs.read((char *)&toRead,sizeof(toRead));
-        key = toRead;
-        key <<= 64;
-        fs.read((char *)&toRead,sizeof(toRead));
-        key |= toRead;
-
-        fs.read((char *)&toRead,sizeof(toRead));
-        val = toRead;
-        val <<= 64;
-        fs.read((char *)&toRead,sizeof(toRead));
-        val |= toRead;
-
-        moveMap.insert(std::pair<compact_t,compact_t>(key,val));
-    }
-
-    fs.close();
-
-    return moveMap;
 }
