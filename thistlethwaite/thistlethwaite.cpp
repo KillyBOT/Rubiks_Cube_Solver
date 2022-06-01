@@ -14,7 +14,9 @@ std::vector<move_t> solve_thistlethwaite(Cube cube){
     std::unordered_map<compact_t, bool> goalMap;
     //std::string searchMovesStr = "F F\' B B\' L L\' R R\' U U\' D D\' F2 B2 U2 D2 L2 R2";
 
-    std::array<std::string,4> searchMoveStrs = {"F F\' B B\' L L\' R R\' U U\' D D\'","F2 B2 L L\' R R\' U U\' D D\'","F2 B2 L2 R2 U U\' D D\'","F2 B2 L2 R2 U2 D2"};
+    //TODO: Determine which of these two search move strings is better
+    //std::array<std::string,4> searchMoveStrs = {"F F\' B B\' L L\' R R\' U U\' D D\'","F2 B2 L L\' R R\' U U\' D D\'","F2 B2 L2 R2 U U\' D D\'","F2 B2 L2 R2 U2 D2"};
+    std::array<std::string,4> searchMoveStrs = {"F B L R U D","F2 B2 L R U D","F2 B2 L2 R2 U D","F2 B2 L2 R2 U2 D2"};
     std::array<bool (Cube::*)(),4> completeFuncs = {&Cube::edgesOriented, &Cube::cornersOriented, &Cube::cornersEdgesCorrectOrbit, &Cube::isComplete};
     int maxDepth;
     unsigned long timeElapsed;
@@ -90,7 +92,7 @@ bool solve_thistlethwaite_pruner(move_t move, move_t prevMove){
 
     if(move == prevMove) return true; //Redundant move (F F = F2, F' = F2 F, etc.)
 
-    //Commutative move (F B ~ F2, L R ~ L2, U D ~ U2, etc.)
+    //Commutative move (F B ~ B F, L R ~ R L, U D ~ D U, etc.)
     if(move == cube_defs::kF && prevMove == cube_defs::kB) return true;
     //else if(move == cube_defs::kB && prevMove == cube_defs::kF) return true;
     if(move == cube_defs::kL && prevMove == cube_defs::kR) return true;

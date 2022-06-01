@@ -341,7 +341,7 @@ void Cube::doMove(move_t move, bool updateCompact, bool printMove){
     if(printMove) std::cout << get_str_from_move(move) << std::endl;
 
     bool twice = move & 1;
-    bool ccw = (move & 2) >> 1;
+    bool ccw = move & 2;
     move >>= 2;
 
     std::array<std::array<std::array<edge_t,3>,4>,6> cMoves = cornerMoves;
@@ -437,16 +437,13 @@ bool Cube::cornersOriented(){
     }
 
     for(edge_t slice = 8; slice < 12; slice++){ //Also need to make sure that the FL, FR, BL, and BR edges are in the correct locations
-        if((this->edges[slice] >> 1) < 8) return false;
+        if(this->edges[slice] < 16) return false;
     }
 
     return true;
 }
 
 bool Cube::cornersEdgesCorrectOrbit(){
-    /*for(corner_t ind = 0; ind < 8; ind++){
-        if(((this->corners[ind] >> 2) + ind) % 2) return false;
-    }*/
 
     using namespace cube_defs;
 
@@ -458,7 +455,7 @@ bool Cube::cornersEdgesCorrectOrbit(){
     if(((this->corners[kBDR] >> 2) != kFDL) && ((this->corners[kBDR] >> 2) != kBDR)) return false;
     
     for(edge_t ind = 0; ind < 4; ind++){
-        if((this->edges[ind] >> 1) >= 4) return false;
+        if(this->edges[ind] >= 8) return false;
     }
 
     byte_t parity = 0;

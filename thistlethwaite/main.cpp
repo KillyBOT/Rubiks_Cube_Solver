@@ -47,7 +47,7 @@ int main()
     cube.printOrientations();
     cube.doMoves(get_moves_from_str("U2 U2"));
     cube.printCube();*/
-    cube.randomize(100);
+    cube.randomize(200);
     cube.printCube();
     cube.printOrientations();
 
