@@ -15,7 +15,7 @@
 //std::vector<move_t> solve_thistlethwaite(Cube cube, bool (Cube::*)() = Cube::isComplete, std::string = "", std::vector<move_t> = std::vector<move_t>());
 
 std::vector<move_t> solve_thistlethwaite(Cube);
-bool solve_thistlethwaite_helper(Cube, bool (Cube::*)(), std::vector<move_t>&, std::vector<move_t>&, std::unordered_map<compact_t,bool> &, int, int);
+bool solve_thistlethwaite_helper(Cube, bool (Cube::*)(), std::vector<move_t>&, std::vector<move_t>&, std::unordered_map<compact_t,bool> &, int, int&);
 bool solve_thistlethwaite_pruner(move_t, move_t);
 
 std::unordered_map<compact_t,std::vector<move_t>> generate_map_thistlethwaite(bool (Cube::*)());

@@ -12,41 +12,50 @@ std::vector<move_t> solve_thistlethwaite(Cube cube){
     std::vector<move_t> finalMoves;
     std::vector<move_t> searchMoves;
     std::unordered_map<compact_t, bool> goalMap;
-    std::string searchMovesStr = "F F\' B B\' L L\' R R\' U U\' D D\' F2 B2 U2 D2 L2 R2";
+    //std::string searchMovesStr = "F F\' B B\' L L\' R R\' U U\' D D\' F2 B2 U2 D2 L2 R2";
 
+    std::array<std::string,4> searchMoveStrs = {"F F\' B B\' L L\' R R\' U U\' D D\'","F2 B2 L L\' R R\' U U\' D D\'","F2 B2 L2 R2 U U\' D D\'","F2 B2 L2 R2 U2 D2"};
     std::array<bool (Cube::*)(),4> completeFuncs = {&Cube::edgesOriented, &Cube::cornersOriented, &Cube::cornersEdgesCorrectOrbit, &Cube::isComplete};
     int maxDepth;
+    unsigned long timeElapsed;
 
-    for(bool (Cube::*completeFunc)() : completeFuncs){
+    for(int n = 0; n < 4; n++){
 
-        moves = std::vector<move_t>();
+        searchMoves = get_moves_from_str(searchMoveStrs[n]);
+
+        moves.clear();
         goalMap.clear();
-        searchMoves = get_moves_from_str(searchMovesStr);
+        //searchMoves = get_moves_from_str(searchMovesStr);
         maxDepth = 0;
 
         auto msStart = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-        while(!solve_thistlethwaite_helper(cube, completeFunc, searchMoves, moves, goalMap, 0, maxDepth)) {
+        while(!solve_thistlethwaite_helper(cube, completeFuncs[n], searchMoves, moves, goalMap, 0, maxDepth)) {
             maxDepth++;
             std::cout << "Increasing maximum depth to " << maxDepth << std::endl;
         }
+        auto msEnd = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
-        std::cout << "Time elapsed (ms): " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()- msStart << std::endl;
+        timeElapsed += msEnd - msStart;
+
+        std::cout << "Time elapsed (ms): " << msEnd-msStart << std::endl;
         std::cout << "Maximum depth: " << maxDepth << std::endl;
 
         cube.doMoves(moves);
         cube.printCube();
         cube.printOrientations();
-        searchMovesStr = searchMovesStr.substr(10,searchMovesStr.size()-10);
+        //searchMovesStr = searchMovesStr.substr(10,searchMovesStr.size()-10);
 
         for(move_t move : moves){
             finalMoves.push_back(move);
         }
     }
 
+    std::cout << "Solved in " << timeElapsed << " ms" << std::endl;
+
     return finalMoves;
 }
 
-bool solve_thistlethwaite_helper(Cube cube, bool (Cube::*completeFunc)(), std::vector<move_t> &searchMoves, std::vector<move_t> &moveList, std::unordered_map<compact_t,bool> &goalMap, int depth, int maxDepth){
+bool solve_thistlethwaite_helper(Cube cube, bool (Cube::*completeFunc)(), std::vector<move_t> &searchMoves, std::vector<move_t> &moveList, std::unordered_map<compact_t,bool> &goalMap, int depth, int &maxDepth){
     if(depth >= maxDepth) {
         cube.setCompact();
         if(!goalMap.count(cube.getCompact())) goalMap.insert(std::pair<compact_t,bool>(cube.getCompact(),(cube.*completeFunc)()));
