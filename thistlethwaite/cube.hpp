@@ -44,24 +44,6 @@ namespace cube_defs{
     const corner_t kBDL = 6;
     const corner_t kBDR = 7;
 
-    /*const corner_t kFUL = 0;
-    const corner_t kBUR = 1;
-    const corner_t kFUR = 2;
-    const corner_t kBUL = 3;
-    const corner_t kFDL = 4;
-    const corner_t kBDR = 5;
-    const corner_t kFDR = 6;
-    const corner_t kBDL = 7;*/
-
-    /*const corner_t kBUL = 0;
-    const corner_t kBUR = 1;
-    const corner_t kFUR = 2;
-    const corner_t kFUL = 3;
-    const corner_t kFDL = 4;
-    const corner_t kBDL = 5;
-    const corner_t kBDR = 6;
-    const corner_t kFDR = 7;*/
-
     const edge_t kFU = 0;
     const edge_t kBU = 1;
     const edge_t kBD = 2;
@@ -141,13 +123,13 @@ namespace cube_defs{
         kBU,kBD,0,kBL,kBR,0,kBD,kBU,0,kBR,kBL,0//B
     };
 
-
-
 }
 
 class Cube {
     std::array<corner_t, 8> corners;
     std::array<edge_t, 12> edges;
+    std::array<byte_t, 8> cornerOri;
+    std::array<byte_t, 12> edgeOri;
     compact_t compact;
 
     public:
@@ -160,10 +142,14 @@ class Cube {
     void printOrientations();
 
     void setCompact();
-    void setCorner(int, corner_t);
-    void setEdge(int, edge_t);
+    void setCorner(int, corner_t, byte_t);
+    void setEdge(int, edge_t, byte_t);
     corner_t getCorner(int);
     edge_t getEdge(int); 
+    int getG0Ind();
+    int getG1Ind();
+    int getG2Ind();
+    int getG3Ind();
 
     void doMove(move_t, bool = true, bool = false);
     void doMoves(std::vector<move_t>, bool = true, bool = false);
@@ -177,8 +163,8 @@ class Cube {
     compact_t getCompact();
 };
 
-std::array<face_t,3> get_corner_face(corner_t);
-std::array<face_t,2> get_edge_face(edge_t);
+std::array<face_t,3> get_corner_face(corner_t, byte_t);
+std::array<face_t,2> get_edge_face(edge_t, byte_t);
 char get_face_char(face_t);
 
 move_t get_move_opposite(move_t);

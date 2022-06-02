@@ -32,7 +32,8 @@ int main()
     /*compact_t compact;
     compact = cube.getCompact();
     Cube cube2(compact);
-    cube2.printCube();*/
+    cube2.printCube();
+    cube2.printOrientations();*/
 
     /*move_t move = get_move_from_str("U2");
     std::cout << get_str_from_move(move) << std::endl;
@@ -47,7 +48,8 @@ int main()
     cube.printOrientations();
     cube.doMoves(get_moves_from_str("U2 U2"));
     cube.printCube();*/
-    cube.randomize(200);
+
+    cube.randomize();
     cube.printCube();
     cube.printOrientations();
 
@@ -58,8 +60,7 @@ int main()
     cube.printCube();
     cube.printOrientations();
 
-    //write_move_map("move_map",generate_move_map());
-    //std::unordered_map<compact_t,compact_t> moveMap = read_move_map("move_map");
+    //write_map_korf("korf",generate_map_korf());
 
     return 0;
 }

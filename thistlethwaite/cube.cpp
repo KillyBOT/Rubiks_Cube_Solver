@@ -10,14 +10,11 @@
 
 #include "cube.hpp"
 
-std::array<face_t,3> get_corner_face(corner_t corner){
+std::array<face_t,3> get_corner_face(corner_t corner, byte_t ori){
 
     using namespace cube_defs;
 
     std::array<face_t,3> faces;
-
-    byte_t ori = corner & 3;
-    corner >>= 2;
     
     int inds[3];
 
@@ -80,12 +77,9 @@ std::array<face_t,3> get_corner_face(corner_t corner){
 
     return faces;
 }
-std::array<face_t,2> get_edge_face(edge_t edge){
+std::array<face_t,2> get_edge_face(edge_t edge, byte_t ori){
 
     using namespace cube_defs;
-
-    byte_t ori = edge & 1;
-    edge >>= 1;
 
     std::array<face_t,2> faces;
 
@@ -171,7 +165,7 @@ char get_face_char(face_t face) {
 }
 
 move_t get_move_opposite(move_t move){
-    return move ^ 3;
+    return move ^ 2;
 }
 
 std::vector<move_t> get_move_opposite(std::vector<move_t> moves){
@@ -256,8 +250,14 @@ std::string get_str_from_moves(std::vector<move_t> moves){
 }
 
 Cube::Cube(){
-    for(corner_t corner = 0; corner < 8; corner++) this->corners[corner] = corner << 2;
-    for(edge_t edge = 0; edge < 12; edge++) this->edges[edge] = edge << 1;
+    for(corner_t corner = 0; corner < 8; corner++) {
+        this->corners[corner] = corner;
+        this->cornerOri[corner] = 0;
+    }
+    for(edge_t edge = 0; edge < 12; edge++) {
+        this->edges[edge] = edge;
+        this->edgeOri[edge] = 0;
+    }
 
     this->setCompact();
 }
@@ -265,6 +265,8 @@ Cube::Cube(){
 Cube::Cube(const Cube &cube){
     this->corners = cube.corners;
     this->edges = cube.edges;
+    this->cornerOri = cube.cornerOri;
+    this->edgeOri = cube.edgeOri;
     this->compact = cube.compact;
 }
 
@@ -272,19 +274,73 @@ Cube::Cube(compact_t compact){
     this->compact = compact;
 
     for(int ind = 11; ind >= 0; ind--){
-        this->edges[ind] = compact & 0b11111;
-        compact >>= 5;
+        this->edgeOri[ind] = compact & 1;
+        compact >>= 1;
+        this->edges[ind] = compact & 0b1111;
+        compact >>= 4;
     }
     for(int ind = 7; ind >= 0; ind--){
-        this->corners[ind] = compact & 0b11111;
-        compact >>= 5;
+        this->cornerOri[ind] = compact & 0b11;
+        compact >>= 2;
+        this->corners[ind] = compact & 0b111;
+        compact >>= 3;
     }
 }
 
-void Cube::setCorner(int ind, corner_t corner) {this->corners[ind] = corner;}
-void Cube::setEdge(int ind, edge_t edge) {this->edges[ind] = edge;}
+void Cube::setCorner(int ind, corner_t corner, byte_t ori) {
+    this->corners[ind] = corner;
+    this->cornerOri[ind] = ori;
+}
+void Cube::setEdge(int ind, edge_t edge, byte_t ori) {
+    this->edges[ind] = edge;
+    this->edges[ind] = ori;
+}
 corner_t Cube::getCorner(int ind) {return this->corners[ind];}
 edge_t Cube::getEdge(int ind) {return this->edges[ind];}
+
+/*int Cube::getEdgeOrientation(){
+    int ans = 0;
+    for(int i = 0; i < 11; i++){
+        ans += this->edgeOri[i] << i;
+    }
+    return ans;
+}
+int Cube::getCornerOrientation(){
+    int ans = 0;
+    int num = 1;
+    for(int i = 0; i < 7; i++){
+        ans += this->cornerOri[i] * num;
+        num *= 3;
+    }
+
+    return ans;
+}
+int Cube::getEdgePermutation(){
+    int ans = 0;
+    int num = 1;
+    for(int i = 1; i < 12; i++){
+        ans += num * this->edges[i];
+        num *= i + 1;
+    }
+    return ans;
+}
+int Cube::getCornerPermutation(){
+    int ans = 0;
+    int num = 1;
+    for(int i = 1; i < 8; i++){
+        ans += num * this->corners[i];
+        num *= i + 1;
+    }
+    return ans;
+}*/
+
+/*int Cube::getG2Ind(){
+    int ans;
+    int num = 1;
+    for(int i = 0; i > 7; i++){
+        ans += 
+    }
+}*/
 
 void Cube::printCube(bool printSolved){
 
@@ -293,8 +349,8 @@ void Cube::printCube(bool printSolved){
     std::array<std::array<face_t,3>,8> cornerFaces;
     std::array<std::array<face_t,2>,12> edgeFaces;
 
-    for(int ind = 0; ind < 8; ind++) cornerFaces[ind] = get_corner_face(this->corners[ind]);
-    for(int ind = 0; ind < 12; ind++) edgeFaces[ind] = get_edge_face(this->edges[ind]);
+    for(int ind = 0; ind < 8; ind++) cornerFaces[ind] = get_corner_face(this->corners[ind], this->cornerOri[ind]);
+    for(int ind = 0; ind < 12; ind++) edgeFaces[ind] = get_edge_face(this->edges[ind], this->edgeOri[ind]);
 
     std::cout << "   " << get_face_char(cornerFaces[kBUL][kDirU]) << get_face_char(edgeFaces[kBU][0]) << get_face_char(cornerFaces[kBUR][kDirU]) << std::endl;
     std::cout << "   " << get_face_char(edgeFaces[kUL][0]) << get_face_char(kU) << get_face_char(edgeFaces[kUR][0]) << std::endl;
@@ -323,12 +379,12 @@ void Cube::printCube(bool printSolved){
 }
 
 void Cube::printOrientations(){
-    for(corner_t corner : this->corners){
-        std::cout << (int)(corner & 3) << ' ';
+    for(byte_t ori : this->cornerOri){
+        std::cout << (int)(ori) << ' ';
     }
     std::cout << std::endl;
-    for(edge_t edge : this->edges){
-        std::cout << (int)(edge & 1) << ' ';
+    for(byte_t ori : this->edgeOri){
+        std::cout << (int)(ori) << ' ';
     }
     std::cout << std::endl;
     std::cout << (this->cornersEdgesCorrectOrbit() ? "Correct orbits" : "Incorrect orbits") << std::endl;
@@ -356,31 +412,24 @@ void Cube::doMove(move_t move, bool updateCompact, bool printMove){
         eMoves = primeEdgeMoves;
     }
 
-    corner_t newCorners[4][2];
-    edge_t newEdges[4][2];
-
-    corner_t cornerOri;
-    corner_t edgeOri;
-
-    corner_t corner;
-    edge_t edge;
+    corner_t newCorners[4][3];
+    edge_t newEdges[4][3];
 
     for(int ind = 0; ind < 4; ind++){
         newCorners[ind][0] = cMoves[move][ind][0];
         newEdges[ind][0] = eMoves[move][ind][0];
 
-        corner = this->corners[cMoves[move][ind][1]];
-        edge = this->edges[eMoves[move][ind][1]];
+        newCorners[ind][1] = this->corners[cMoves[move][ind][1]];
+        newEdges[ind][1] = this->edges[eMoves[move][ind][1]];
 
-        cornerOri = ((corner & 3) + cMoves[move][ind][2]) % 3;
-        edgeOri = ((edge & 1) + eMoves[move][ind][2]) % 2;
-
-        newCorners[ind][1] = (corner & 0b11111100) | cornerOri;
-        newEdges[ind][1] = (edge & 0b11111110) | edgeOri;
+        newCorners[ind][2] = (this->cornerOri[cMoves[move][ind][0]] + cMoves[move][ind][2]) % 3;
+        newEdges[ind][2] = (this->edgeOri[eMoves[move][ind][0]] + eMoves[move][ind][2]) & 1;
     }
     for(int ind = 0; ind < 4; ind++){
         this->corners[newCorners[ind][0]] = newCorners[ind][1];
         this->edges[newEdges[ind][0]] = newEdges[ind][1];
+        this->cornerOri[newCorners[ind][0]] = newCorners[ind][2];
+        this->edgeOri[newEdges[ind][0]] = newEdges[ind][2];
     }
 
     if(updateCompact) this->setCompact();
@@ -413,11 +462,13 @@ void Cube::randomize(int times, bool printMoves){
 }
 
 bool Cube::isComplete(){
-    for(corner_t corner = 0; corner < 8; corner++){
-        if(this->corners[corner] != (corner << 2)) return false;
+    for(byte_t ind = 0; ind < 8; ind++){
+        if(this->corners[ind] != ind) return false;
+        if(this->cornerOri[ind]) return false;
     }
-    for(edge_t edge = 0; edge < 12; edge++){
-        if(this->edges[edge] != (edge << 1)) return false;
+    for(byte_t ind = 0; ind < 12; ind++){
+        if(this->edges[ind] != ind) return false;
+        if(this->edgeOri[ind]) return false;
     }
     return true;
 
@@ -425,19 +476,19 @@ bool Cube::isComplete(){
 }
 
 bool Cube::edgesOriented(){
-    for(edge_t edge : this->edges){
-        if(edge & 1) return false;
+    for(byte_t ori : this->edgeOri){
+        if(ori) return false;
     }
     return true;
 }
 
 bool Cube::cornersOriented(){
-    for(corner_t corner : this->corners){
-        if(corner & 3) return false;
+    for(byte_t ori : this->cornerOri){
+        if(ori) return false;
     }
 
     for(edge_t slice = 8; slice < 12; slice++){ //Also need to make sure that the FL, FR, BL, and BR edges are in the correct locations
-        if(this->edges[slice] < 16) return false;
+        if(this->edges[slice] < 8) return false;
     }
 
     return true;
@@ -445,17 +496,27 @@ bool Cube::cornersOriented(){
 
 bool Cube::cornersEdgesCorrectOrbit(){
 
+    /*for(corner_t i = 0; i < 8; i++){
+        if((i + this->corners[i]) % 2) return false;
+    }
+    
+    for(edge_t i = 0; i < 4; i++){
+        if(this->edges[i] >= 4) return false;
+    }
+
+    return true;*/
+
     using namespace cube_defs;
 
-    if(((this->corners[kFUL] >> 2) != kFUL) && ((this->corners[kFUL] >> 2) != kBUR)) return false;
-    if(((this->corners[kBUR] >> 2) != kFUL) && ((this->corners[kBUR] >> 2) != kBUR)) return false;
-    if(((this->corners[kFUR] >> 2) != kFUR) && ((this->corners[kFUR] >> 2) != kBUL)) return false;
-    if(((this->corners[kBUL] >> 2) != kFUR) && ((this->corners[kBUL] >> 2) != kBUL)) return false;
-    if(((this->corners[kFDL] >> 2) != kFDL) && ((this->corners[kFDL] >> 2) != kBDR)) return false;
-    if(((this->corners[kBDR] >> 2) != kFDL) && ((this->corners[kBDR] >> 2) != kBDR)) return false;
+    if(this->corners[kFUL] != kFUL && this->corners[kFUL] != kBUR) return false;
+    if(this->corners[kBUR] != kFUL && this->corners[kBUR] != kBUR) return false;
+    if(this->corners[kFUR] != kFUR && this->corners[kFUR] != kBUL) return false;
+    if(this->corners[kBUL] != kFUR && this->corners[kBUL] != kBUL) return false;
+    if(this->corners[kFDL] != kFDL && this->corners[kFDL] != kBDR) return false;
+    if(this->corners[kBDR] != kFDL && this->corners[kBDR] != kBDR) return false;
     
     for(edge_t ind = 0; ind < 4; ind++){
-        if(this->edges[ind] >= 8) return false;
+        if(this->edges[ind] >= 4) return false;
     }
 
     byte_t parity = 0;
@@ -470,13 +531,17 @@ bool Cube::cornersEdgesCorrectOrbit(){
 void Cube::setCompact(){
     this->compact = 0;
 
-    for(corner_t corner : this->corners){
-        this->compact <<= 5;
-        this->compact |= corner & 0b11111;
+    for(int ind = 0; ind < 8; ind++){
+        this->compact <<= 3;
+        this->compact |= this->corners[ind] & 0b111;
+        this->compact <<= 2;
+        this->compact |= this->cornerOri[ind] & 0b11;
     }
-    for(edge_t edge : this->edges){
-        this->compact <<= 5;
-        this->compact |= edge & 0b11111;
+    for(int ind = 0; ind < 12; ind++){
+        this->compact <<= 4;
+        this->compact |= this->edges[ind] & 0b1111;
+        this->compact <<= 1;
+        this->compact |= this->edgeOri[ind] & 1;
     }
 }
 
