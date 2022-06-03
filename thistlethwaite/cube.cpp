@@ -345,9 +345,14 @@ int Cube::getCornerPermutation(){
 int Cube::korfGetEdge1Ind(){
     int ans = 0;
     int num = 1;
-    for(int ind = 0; ind < 6; ind++){
-        ans += this->edges[ind] * num;
-        num *= ind + 2;
+    int toAdd;
+    for(int ind = 1; ind < 6; ind++){
+        toAdd = 0;
+        num *= ind;
+        for(int otherInd = 0; otherInd < ind; otherInd++){
+            if(this->edges[ind] < this->edges[otherInd]) toAdd++;
+        }
+        ans += toAdd * num;
     }
     for(int ind = 0; ind < 6; ind++){
         ans <<= 1;
@@ -359,13 +364,18 @@ int Cube::korfGetEdge1Ind(){
 int Cube::korfGetEdge2Ind(){
     int ans = 0;
     int num = 1;
-    for(int ind = 0; ind < 6; ind++){
-        ans += this->edges[ind+6] * num;
-        num *= ind + 2;
+    int toAdd;
+    for(int ind = 1; ind < 6; ind++){
+        toAdd = 0;
+        num *= ind;
+        for(int otherInd = 0; otherInd < ind; otherInd++){
+            if(this->edges[ind+6] < this->edges[otherInd+6]) toAdd++;
+        }
+        ans += toAdd * num;
     }
     for(int ind = 0; ind < 6; ind++){
         ans <<= 1;
-        ans += this->edgeOri[ind+6];
+        ans += this->edgeOri[ind];
     }
 
     return ans;

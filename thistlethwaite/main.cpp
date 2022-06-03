@@ -49,18 +49,18 @@ int main()
     cube.doMoves(get_moves_from_str("U2 U2"));
     cube.printCube();*/
 
-    cube.randomize();
+    /*cube.randomize();
     cube.printCube();
     cube.printOrientations();
 
-    std::vector<move_t> moves = solve_thistlethwaite(cube);
+    std::vector<move_t> moves = thistlewaite_solve(cube);
     for(move_t move: moves) std::cout << get_str_from_move(move) << ' ';
     std::cout << std::endl;
     cube.doMoves(moves);
     cube.printCube();
-    cube.printOrientations();
+    cube.printOrientations();*/
 
-    //write_map_korf("korf_corners",&Cube::korfGetCornerInd,88179840);
+    korf_create_maps();
 
     return 0;
 }
