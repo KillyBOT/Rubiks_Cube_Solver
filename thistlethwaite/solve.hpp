@@ -21,8 +21,10 @@ bool solve_thistlethwaite_pruner(move_t, move_t);
 void write_map_thistlethwaite();
 std::unordered_map<compact_t,byte_t> read_map_thistlethwaite();
 
-/*void write_map_korf();
-std::unordered_map<compact_t,byte_t> read_map_korf();
-std::vector<move_t> solve_korf(Cube);*/
+
+void write_map_korf(std::string, int (Cube::*)(), int size);
+bool write_map_korf_iddfs(Cube &, int (Cube::*)(), std::unordered_map<int,byte_t>&, std::vector<move_t> &, int, int&);
+std::unordered_map<int,byte_t> read_map_korf(std::string);
+std::vector<move_t> solve_korf(Cube);
 
 #endif

@@ -73,7 +73,7 @@ bool solve_thistlethwaite_iddfs(Cube cube, bool (Cube::*completeFunc)(), std::ve
             moveList.push_back(move);
 
             Cube newCube(cube);
-            newCube.doMove(move);
+            newCube.doMove(move, false);
 
             if(solve_thistlethwaite_iddfs(newCube,completeFunc,searchMoves,moveList,goalMap,depth+1,maxDepth)) {
                 return true;

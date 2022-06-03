@@ -146,10 +146,9 @@ class Cube {
     void setEdge(int, edge_t, byte_t);
     corner_t getCorner(int);
     edge_t getEdge(int); 
-    int getG0Ind();
-    int getG1Ind();
-    int getG2Ind();
-    int getG3Ind();
+    int korfGetEdge1Ind();
+    int korfGetEdge2Ind();
+    int korfGetCornerInd();
 
     void doMove(move_t, bool = true, bool = false);
     void doMoves(std::vector<move_t>, bool = true, bool = false);

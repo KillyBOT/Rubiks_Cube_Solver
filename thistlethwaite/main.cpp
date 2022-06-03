@@ -42,8 +42,8 @@ int main()
     cube.printOrientations();*/
 
 
-    cube.printCube();
-    cube.printOrientations();
+    //cube.printCube();
+    //cube.printOrientations();
     /*std::cout << std::hex << (unsigned long)(cube.getCompact() >> 64) << std::endl << (unsigned long)(cube.getCompact() & 0xFFFFFFFFFFFFFFFF)<< std::endl;
     cube.printOrientations();
     cube.doMoves(get_moves_from_str("U2 U2"));
@@ -60,7 +60,7 @@ int main()
     cube.printCube();
     cube.printOrientations();
 
-    //write_map_korf("korf",generate_map_korf());
+    //write_map_korf("korf_corners",&Cube::korfGetCornerInd,88179840);
 
     return 0;
 }
