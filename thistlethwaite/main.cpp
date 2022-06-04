@@ -49,18 +49,19 @@ int main()
     cube.doMoves(get_moves_from_str("U2 U2"));
     cube.printCube();*/
 
-    /*cube.randomize();
+    //F B' L2 is a quick and easy randomization to check
+    cube.randomize();
     cube.printCube();
     cube.printOrientations();
 
-    std::vector<move_t> moves = thistlewaite_solve(cube);
+    std::vector<move_t> moves = thistlethwaite_solve(cube);
     for(move_t move: moves) std::cout << get_str_from_move(move) << ' ';
     std::cout << std::endl;
     cube.doMoves(moves);
     cube.printCube();
-    cube.printOrientations();*/
+    cube.printOrientations();
 
-    korf_create_maps();
+    //korf_create_maps();
 
     return 0;
 }

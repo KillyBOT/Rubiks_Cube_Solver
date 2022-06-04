@@ -117,10 +117,10 @@ void korf_create_maps(){
                 search = true;
             }
 
-            if(cornersMap[newCubeCornerInd] > maxDepth){
+            /*if(cornersMap[newCubeCornerInd] > maxDepth){
                 maxDepth++;
                 std::cout << maxDepth << std::endl;
-            }
+            }*/
 
             if(search){
                 cubeQueue.push(newCube);
@@ -184,7 +184,7 @@ bool korf_create_maps_iddfs(Cube &cube, std::unordered_map<int,byte_t>& cornerMa
 
     } else {
         for(move_t move : moves){
-            if(!thistlewaite_solve_pruner(move,prevMove)){
+            if(!thistlethwaite_solve_pruner(move,prevMove)){
                 cube.doMove(move,false);
                 if(!korf_create_maps_iddfs(cube, cornerMap, edges1Map, edges2Map, moves, move, depth + 1, maxDepth) && finished) finished = false;
                 cube.doMove(get_move_opposite(move),false);

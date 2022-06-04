@@ -7,31 +7,31 @@
 
 #include "solve.hpp"
 
-std::vector<move_t> thistlewaite_solve(Cube cube){
+std::vector<move_t> thistlethwaite_solve(Cube cube){
     std::vector<move_t> moves;
     std::vector<move_t> finalMoves;
     std::vector<move_t> searchMoves;
     std::unordered_map<compact_t, bool> goalMap;
-    //std::string searchMovesStr = "F F\' B B\' L L\' R R\' U U\' D D\' F2 B2 U2 D2 L2 R2";
+    std::string searchMovesStr = "F F\' B B\' L L\' R R\' U U\' D D\' F2 B2 U2 D2 L2 R2";
 
     //TODO: Determine which of these two search move strings is better
     //std::array<std::string,4> searchMoveStrs = {"F F\' B B\' L L\' R R\' U U\' D D\'","F2 B2 L L\' R R\' U U\' D D\'","F2 B2 L2 R2 U U\' D D\'","F2 B2 L2 R2 U2 D2"};
-    std::array<std::string,4> searchMoveStrs = {"F B L R U D","F2 B2 L R U D","F2 B2 L2 R2 U D","F2 B2 L2 R2 U2 D2"};
+    //std::array<std::string,4> searchMoveStrs = {"F B L R U D","F2 B2 L R U D","F2 B2 L2 R2 U D","F2 B2 L2 R2 U2 D2"};
     std::array<bool (Cube::*)(),4> completeFuncs = {&Cube::edgesOriented, &Cube::cornersOriented, &Cube::cornersEdgesCorrectOrbit, &Cube::isComplete};
     int maxDepth;
     int64_t timeElapsed;
 
     for(int n = 0; n < 4; n++){
 
-        searchMoves = get_moves_from_str(searchMoveStrs[n]);
+        //searchMoves = get_moves_from_str(searchMoveStrs[n]);
 
         moves.clear();
         goalMap.clear();
-        //searchMoves = get_moves_from_str(searchMovesStr);
+        searchMoves = get_moves_from_str(searchMovesStr);
         maxDepth = 0;
 
         auto msStart = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-        while(!thistlewaite_solve_iddfs(cube, completeFuncs[n], searchMoves, moves, goalMap, 0, maxDepth)) {
+        while(!thistlethwaite_solve_iddfs(cube, completeFuncs[n], searchMoves, moves, goalMap, 0, maxDepth)) {
             maxDepth++;
             std::cout << "Increasing maximum depth to " << maxDepth << std::endl;
         }
@@ -39,25 +39,26 @@ std::vector<move_t> thistlewaite_solve(Cube cube){
 
         timeElapsed += msEnd - msStart;
 
-        std::cout << "Time elapsed (ms): " << msEnd-msStart << std::endl;
+        std::cout << "Time elapsed (ms): " << (msEnd-msStart) << std::endl;
         std::cout << "Maximum depth: " << maxDepth << std::endl;
 
         cube.doMoves(moves);
         cube.printCube();
         cube.printOrientations();
-        //searchMovesStr = searchMovesStr.substr(10,searchMovesStr.size()-10);
+        searchMovesStr = searchMovesStr.substr(10,searchMovesStr.size()-10);
 
         for(move_t move : moves){
             finalMoves.push_back(move);
         }
     }
 
-    std::cout << "Solved in " << timeElapsed << " ms" << std::endl;
+    std::cout << "Solve time (ms): " << timeElapsed << std::endl;
+    std::cout << "Average time per move (ms): " << timeElapsed/finalMoves.size() << std::endl;
 
     return finalMoves;
 }
 
-bool thistlewaite_solve_iddfs(Cube cube, bool (Cube::*completeFunc)(), std::vector<move_t> &searchMoves, std::vector<move_t> &moveList, std::unordered_map<compact_t,bool> &goalMap, int depth, int &maxDepth){
+bool thistlethwaite_solve_iddfs(Cube cube, bool (Cube::*completeFunc)(), std::vector<move_t> &searchMoves, std::vector<move_t> &moveList, std::unordered_map<compact_t,bool> &goalMap, int depth, int &maxDepth){
     if(depth >= maxDepth) {
         cube.setCompact();
         if(!goalMap.count(cube.getCompact())) goalMap.insert(std::pair<compact_t,bool>(cube.getCompact(),(cube.*completeFunc)()));
@@ -68,22 +69,36 @@ bool thistlewaite_solve_iddfs(Cube cube, bool (Cube::*completeFunc)(), std::vect
     //std::cout << std::endl;
 
     for(move_t move : searchMoves){
-        if(!moveList.size() || !thistlewaite_solve_pruner(move,moveList.back())){
+        if(!moveList.size() || !thistlethwaite_solve_pruner(move,moveList.back())){
 
             moveList.push_back(move);
 
             Cube newCube(cube);
             newCube.doMove(move, false);
+            //cube.doMove(move, false);
 
-            if(thistlewaite_solve_iddfs(newCube,completeFunc,searchMoves,moveList,goalMap,depth+1,maxDepth)) {
+            if(thistlethwaite_solve_iddfs(newCube,completeFunc,searchMoves,moveList,goalMap,depth+1,maxDepth)) {
                 return true;
             }
-            else moveList.pop_back();
+            else {
+                moveList.pop_back();
+                //cube.doMove(get_move_opposite(move),false);
+            }
         }
     }
     return false;
 }
-bool thistlewaite_solve_pruner(move_t move, move_t prevMove){
+
+//TODO: Finish this
+std::vector<move_t> thistlethwaite_solve_bfs(Cube cube, bool (Cube::*completeFunc()), std::vector<move_t> &searachMoves){
+    std::queue<Cube> cubeQueue;
+    std::unordered_map<compact_t, compact_t> cubeParentMap;
+    std::unordered_map<compact_t, move_t> cubeLastMoveMap;
+
+    return std::vector<move_t>();
+}
+
+bool thistlethwaite_solve_pruner(move_t move, move_t prevMove){
 
     move >>= 2;
     prevMove >>= 2;
