@@ -1,4 +1,5 @@
 #include <iostream>
+#include <thread>
 
 #include "cube.hpp"
 #include "solve.hpp"
@@ -50,7 +51,7 @@ int main()
     cube.printCube();*/
 
     //F B' L2 is a quick and easy randomization to check
-    cube.randomize();
+    /*cube.randomize(10, true);
     cube.printCube();
     cube.printOrientations();
 
@@ -59,9 +60,25 @@ int main()
     std::cout << std::endl;
     cube.doMoves(moves);
     cube.printCube();
-    cube.printOrientations();
+    cube.printOrientations();*/
 
+    //std::thread cornerThread(korf_create_map, "korf_corners", &Cube::korfGetCornerInd, 11);
+    //std::thread edge1Thread(korf_create_map, "korf_edges_1", &Cube::korfGetEdge1Ind, 10);
+    //std::thread edge2Thread(korf_create_map, "korf_edges_2", &Cube::korfGetEdge2Ind, 10);
+    //edge1Thread.join();
+    //edge2Thread.join();
+    //cornerThread.join();
+    
     //korf_create_maps();
+
+    cube.randomize(5,true);
+    cube.printCube();
+    
+    std::vector<move_t> moves = korf_solve(cube);
+    for(move_t move: moves) std::cout << get_str_from_move(move) << ' ';
+    std::cout << std::endl;
+    cube.doMoves(moves);
+    cube.printCube();
 
     return 0;
 }

@@ -42,7 +42,7 @@ std::vector<move_t> thistlethwaite_solve(Cube cube){
         std::cout << "Time elapsed (ms): " << (msEnd-msStart) << std::endl;
         std::cout << "Maximum depth: " << maxDepth << std::endl;
 
-        cube.doMoves(moves);
+        //cube.doMoves(moves);
         cube.printCube();
         cube.printOrientations();
         searchMovesStr = searchMovesStr.substr(10,searchMovesStr.size()-10);
@@ -58,7 +58,7 @@ std::vector<move_t> thistlethwaite_solve(Cube cube){
     return finalMoves;
 }
 
-bool thistlethwaite_solve_iddfs(Cube cube, bool (Cube::*completeFunc)(), std::vector<move_t> &searchMoves, std::vector<move_t> &moveList, std::unordered_map<compact_t,bool> &goalMap, int depth, int &maxDepth){
+bool thistlethwaite_solve_iddfs(Cube &cube, bool (Cube::*completeFunc)(), std::vector<move_t> &searchMoves, std::vector<move_t> &moveList, std::unordered_map<compact_t,bool> &goalMap, int depth, int &maxDepth){
     if(depth >= maxDepth) {
         cube.setCompact();
         if(!goalMap.count(cube.getCompact())) goalMap.insert(std::pair<compact_t,bool>(cube.getCompact(),(cube.*completeFunc)()));
@@ -69,20 +69,20 @@ bool thistlethwaite_solve_iddfs(Cube cube, bool (Cube::*completeFunc)(), std::ve
     //std::cout << std::endl;
 
     for(move_t move : searchMoves){
-        if(!moveList.size() || !thistlethwaite_solve_pruner(move,moveList.back())){
+        if(!moveList.size() || !solve_pruner(move,moveList.back())){
 
             moveList.push_back(move);
 
-            Cube newCube(cube);
-            newCube.doMove(move, false);
-            //cube.doMove(move, false);
+            //Cube newCube(cube);
+            //newCube.doMove(move, false);
+            cube.doMove(move, false);
 
-            if(thistlethwaite_solve_iddfs(newCube,completeFunc,searchMoves,moveList,goalMap,depth+1,maxDepth)) {
+            if(thistlethwaite_solve_iddfs(cube,completeFunc,searchMoves,moveList,goalMap,depth+1,maxDepth)) {
                 return true;
             }
             else {
                 moveList.pop_back();
-                //cube.doMove(get_move_opposite(move),false);
+                cube.doMove(get_move_opposite(move),false);
             }
         }
     }
@@ -90,15 +90,15 @@ bool thistlethwaite_solve_iddfs(Cube cube, bool (Cube::*completeFunc)(), std::ve
 }
 
 //TODO: Finish this
-std::vector<move_t> thistlethwaite_solve_bfs(Cube cube, bool (Cube::*completeFunc()), std::vector<move_t> &searachMoves){
+/*std::vector<move_t> thistlethwaite_solve_bfs(Cube cube, bool (Cube::*completeFunc()), std::vector<move_t> &searachMoves){
     std::queue<Cube> cubeQueue;
     std::unordered_map<compact_t, compact_t> cubeParentMap;
     std::unordered_map<compact_t, move_t> cubeLastMoveMap;
 
     return std::vector<move_t>();
-}
+}*/
 
-bool thistlethwaite_solve_pruner(move_t move, move_t prevMove){
+bool solve_pruner(move_t move, move_t prevMove){
 
     move >>= 2;
     prevMove >>= 2;
@@ -107,11 +107,8 @@ bool thistlethwaite_solve_pruner(move_t move, move_t prevMove){
 
     //Commutative move (F B ~ B F, L R ~ R L, U D ~ D U, etc.)
     if(move == cube_defs::kF && prevMove == cube_defs::kB) return true;
-    //else if(move == cube_defs::kB && prevMove == cube_defs::kF) return true;
-    if(move == cube_defs::kL && prevMove == cube_defs::kR) return true;
-    //else if(move == cube_defs::kR && prevMove == cube_defs::kL) return true;
-    if(move == cube_defs::kU && prevMove == cube_defs::kD) return true;
-    //else if(move == cube_defs::kD && prevMove == cube_defs::kU) return true;
+    else if(move == cube_defs::kL && prevMove == cube_defs::kR) return true;
+    else if(move == cube_defs::kU && prevMove == cube_defs::kD) return true;
     //std::cout << (int) move << '\t' << (int)prevMove << std::endl;
 
     return false;

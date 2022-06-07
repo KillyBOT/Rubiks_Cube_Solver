@@ -342,53 +342,63 @@ int Cube::getCornerPermutation(){
     }
 }*/
 
+inline int factorial(int n){
+    int ans = 1;
+    for(int i = 2; i <= n; i++) ans *= i;
+    return ans;
+}
+
+inline int npk(int n, int k){
+    return factorial(n) / factorial(n - k);
+}
+
 int Cube::korfGetEdge1Ind(){
     int ans = 0;
-    int num = 1;
     int toAdd;
-    for(int ind = 1; ind < 6; ind++){
-        toAdd = 0;
-        num *= ind;
-        for(int otherInd = 0; otherInd < ind; otherInd++){
-            if(this->edges[ind] < this->edges[otherInd]) toAdd++;
+    for(int i = 0; i < 6; i++){
+        toAdd = this->edges[i];
+        for(int j = 0; j < i; j++){
+            if(this->edges[i] > this->edges[j]) toAdd--;
         }
-        ans += toAdd * num;
+        ans += toAdd * npk(11-i,5-i);
     }
+
     for(int ind = 0; ind < 6; ind++){
         ans <<= 1;
-        ans += this->edgeOri[ind];
+        ans |= this->edgeOri[ind];
     }
 
     return ans;
 }
+
 int Cube::korfGetEdge2Ind(){
     int ans = 0;
-    int num = 1;
     int toAdd;
-    for(int ind = 1; ind < 6; ind++){
-        toAdd = 0;
-        num *= ind;
-        for(int otherInd = 0; otherInd < ind; otherInd++){
-            if(this->edges[ind+6] < this->edges[otherInd+6]) toAdd++;
+    for(int i = 6; i < 12; i++){
+        toAdd = this->edges[i];
+        for(int j = 6; j < i; j++){
+            if(this->edges[i] > this->edges[j]) toAdd--;
         }
-        ans += toAdd * num;
+        ans += toAdd * npk(17-i,11-i); 
     }
-    for(int ind = 0; ind < 6; ind++){
+
+    for(int ind = 6; ind < 12; ind++){
         ans <<= 1;
-        ans += this->edgeOri[ind];
+        ans |= this->edgeOri[ind];
     }
 
     return ans;
 }
+
 int Cube::korfGetCornerInd(){
     int ans = 0;
     int num = 1;
     int toAdd;
-    for(int ind = 1; ind < 8; ind++){
+    for(int i = 1; i < 8; i++){
         toAdd = 0;
-        num *= ind;
-        for(int otherInd = 0; otherInd < ind; otherInd++){
-            if(this->corners[ind] < this->corners[otherInd]) toAdd++;
+        num *= i;
+        for(int j = 0; j < i; j++){
+            if(this->corners[i] < this->corners[j]) toAdd++;
         }
         ans += toAdd * num;
     }
@@ -482,8 +492,8 @@ void Cube::doMove(move_t move, bool updateCompact, bool printMove){
         newCorners[ind][1] = this->corners[cMoves[move][ind][1]];
         newEdges[ind][1] = this->edges[eMoves[move][ind][1]];
 
-        newCorners[ind][2] = (this->cornerOri[cMoves[move][ind][0]] + cMoves[move][ind][2]) % 3;
-        newEdges[ind][2] = (this->edgeOri[eMoves[move][ind][0]] + eMoves[move][ind][2]) & 1;
+        newCorners[ind][2] = (this->cornerOri[cMoves[move][ind][1]] + cMoves[move][ind][2]) % 3;
+        newEdges[ind][2] = (this->edgeOri[eMoves[move][ind][1]] + eMoves[move][ind][2]) & 1;
     }
     for(int ind = 0; ind < 4; ind++){
         this->corners[newCorners[ind][0]] = newCorners[ind][1];

@@ -5,7 +5,7 @@ CXXFLAGS = -g -Wall
 
 LDFLAGS = -g
 
-LDLIBS = 
+LDLIBS = -pthread 
 
 main: main.o thistlethwaite.o korf.o cube.o
 

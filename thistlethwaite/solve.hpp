@@ -15,16 +15,21 @@
 //std::vector<move_t> thistlethwaite_solve(Cube cube, bool (Cube::*)() = Cube::isComplete, std::string = "", std::vector<move_t> = std::vector<move_t>());
 
 std::vector<move_t> thistlethwaite_solve(Cube);
-bool thistlethwaite_solve_iddfs(Cube, bool (Cube::*)(), std::vector<move_t>&, std::vector<move_t>&, std::unordered_map<compact_t,bool> &, int, int&);
+bool thistlethwaite_solve_iddfs(Cube &, bool (Cube::*)(), std::vector<move_t>&, std::vector<move_t>&, std::unordered_map<compact_t,bool> &, int, int&);
 std::vector<move_t> thistlethwaite_solve_bfs(Cube, bool (Cube::*)(), std::vector<move_t> &);
-bool thistlethwaite_solve_pruner(move_t, move_t);
+bool solve_pruner(move_t, move_t);
 
-void write_map_thistlethwaite();
-std::unordered_map<compact_t,byte_t> read_map_thistlethwaite();
+void thistlethwaite_write_map(std::string, int (Cube::*)());
+void thistlethwaite_write_maps();
+std::unordered_map<int,std::pair<int,compact_t>> thistlethwaite_read_map(std::string);
 
+void korf_create_map(std::string, int (Cube::*)(), byte_t);
+void korf_create_map_dfs(Cube &, int (Cube::*)(), std::unordered_map<int,byte_t>&, std::vector<move_t>&, move_t, byte_t, byte_t&);
 void korf_create_maps();
-bool korf_create_maps_iddfs(Cube &, std::unordered_map<int,byte_t>&, std::unordered_map<int,byte_t>&, std::unordered_map<int,byte_t>&, std::vector<move_t> &, move_t, int, int&);
-std::unordered_map<int,byte_t> fork_read_map(std::string);
+void korf_write_map(std::string,std::unordered_map<int,byte_t>&);
+std::unordered_map<int,byte_t> korf_read_map(std::string);
+
 std::vector<move_t> korf_solve(Cube);
+bool korf_solve_ida(Cube &, std::vector<move_t>&, std::vector<move_t>&, std::unordered_map<int,byte_t> &, std::unordered_map<int,byte_t> &, std::unordered_map<int,byte_t> &, int, int &);
 
 #endif
