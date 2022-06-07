@@ -8,7 +8,9 @@
 
 #include "solve.hpp"
 
-unsigned long statesVisited;
+std::unordered_map<int,byte_t> gCornersMap;
+std::unordered_map<int,byte_t> gEdges1Map;
+std::unordered_map<int, byte_t> gEdges2Map;
 
 /*std::unordered_map<compact_t,byte_t> generate_map_korf(){
     std::unordered_map<compact_t,byte_t> movesMap;
@@ -128,8 +130,6 @@ void korf_create_map(std::string filename, int(Cube::*indFunc)(), byte_t maxDept
     std::unordered_map<int,byte_t> moveMap;
     std::vector<move_t> moves = get_moves_from_str("F F\' B B\' L L\' R R\' U U\' D D\' F2 B2 U2 D2 L2 R2");
 
-    statesVisited = 0;
-
     Cube cube;
     korf_create_map_dfs(cube, indFunc, moveMap, moves, 255, 0, maxDepth);
     std::cout << moveMap.size() << std::endl;
@@ -202,11 +202,11 @@ std::unordered_map<int, byte_t> korf_read_map(std::string filename){
 }
 
 std::vector<move_t> korf_solve(Cube cube){
-    std::unordered_map<int,byte_t> cornersMap = korf_read_map("korf_corners");
+    gCornersMap = korf_read_map("korf_corners");
     std::cout << "Corners read" << std::endl;
-    std::unordered_map<int,byte_t> edges1Map = korf_read_map("korf_edges_1");
+    gEdges1Map = korf_read_map("korf_edges_1");
     std::cout << "Edges 1 read" << std::endl;
-    std::unordered_map<int,byte_t> edges2Map = korf_read_map("korf_edges_2");
+    gEdges2Map = korf_read_map("korf_edges_2");
     std::cout << "Edges 2 read" << std::endl;
 
     std::vector<move_t> moves;
@@ -214,59 +214,8 @@ std::vector<move_t> korf_solve(Cube cube){
 
     int maxDepth = 0;
 
-    while(!korf_solve_ida(cube, moves, searchMoves, cornersMap, edges1Map, edges2Map, 0, maxDepth)){
-        maxDepth++;
-        std::cout << "Increasing max depth to " << maxDepth << std::endl;
-    }
+    //TODO: write A* search here
 
     return moves;
-
-}
-
-bool korf_solve_ida(Cube &cube, std::vector<move_t> &moves, std::vector<move_t> &searchMoves, std::unordered_map<int,byte_t> &cornersMap, std::unordered_map<int,byte_t> &edges1Map, std::unordered_map<int,byte_t> &edges2Map, int depth, int &maxDepth){
-
-    if(depth == maxDepth){
-        return cube.isComplete();
-    }
-
-    std::vector<std::pair<byte_t,move_t>> moveList;
-    byte_t cornerVal, edge1Val, edge2Val;
-
-    for(move_t move : searchMoves){
-        if(!moves.size() || !solve_pruner(move, moves.back())){
-
-            cube.doMove(move,false);
-
-            cornerVal = cornersMap[cube.korfGetCornerInd()];
-            edge1Val = edges1Map[cube.korfGetEdge1Ind()];
-            edge2Val = edges2Map[cube.korfGetEdge2Ind()];
-
-            moveList.push_back(std::pair<byte_t,move_t>(std::max(std::max(edge1Val,edge2Val),cornerVal),move));
-
-            if(moveList.back().first < moves.size()) moveList.pop_back();
-
-            cube.doMove(get_move_opposite(move),false);
-        }
-    }
-
-    while(!moveList.empty()){
-        //Find minimum move
-        size_t minInd = 0;
-        for(size_t ind = 1; ind < moveList.size(); ind++){
-            if(moveList[ind].first < moveList[minInd].first) minInd = ind;
-        }
-
-        //Do that move, if it's not correct then remove it from the moves to do and repeat
-        cube.doMove(moveList[minInd].second,false);
-        moves.push_back(moveList[minInd].second);
-        if(korf_solve_ida(cube, moves, searchMoves, cornersMap, edges1Map, edges2Map, depth+1, maxDepth)) return true;
-        else{
-            cube.doMove(get_move_opposite(moveList[minInd].second),false);
-            moves.pop_back();
-            moveList.erase(moveList.begin() + minInd);
-        }
-    }
-
-    return false;
 
 }

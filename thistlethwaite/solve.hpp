@@ -30,6 +30,5 @@ void korf_write_map(std::string,std::unordered_map<int,byte_t>&);
 std::unordered_map<int,byte_t> korf_read_map(std::string);
 
 std::vector<move_t> korf_solve(Cube);
-bool korf_solve_ida(Cube &, std::vector<move_t>&, std::vector<move_t>&, std::unordered_map<int,byte_t> &, std::unordered_map<int,byte_t> &, std::unordered_map<int,byte_t> &, int, int &);
 
 #endif
