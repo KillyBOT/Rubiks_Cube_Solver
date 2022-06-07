@@ -71,7 +71,7 @@ int main()
     
     //korf_create_maps();
 
-    cube.randomize(5,true);
+    cube.randomize(12,true);
     cube.printCube();
     
     std::vector<move_t> moves = korf_solve(cube);

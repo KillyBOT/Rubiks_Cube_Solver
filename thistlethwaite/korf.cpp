@@ -223,7 +223,13 @@ std::vector<move_t> korf_solve(Cube cube){
     std::vector<move_t> searchMoves = get_moves_from_str("F F\' B B\' L L\' R R\' U U\' D D\' F2 B2 U2 D2 L2 R2");
 
     //TODO: write A* search here
-    korf_solve_ida(cube, moves, searchMoves, 0, std::max(std::max(gEdges1Map[cube.korfGetEdge1Ind()],gEdges2Map[cube.korfGetEdge2Ind()]),gCornersMap[cube.korfGetCornerInd()]));
+
+    int maxDepth = std::max(std::max(gEdges1Map[cube.korfGetEdge1Ind()],gEdges2Map[cube.korfGetEdge2Ind()]),gCornersMap[cube.korfGetCornerInd()]);
+
+    while(!korf_solve_ida(cube, moves, searchMoves, 0, maxDepth)){
+        maxDepth++;
+        std::cout << "Max depth increased to " << maxDepth << std::endl;
+    }
 
     return moves;
 
@@ -232,19 +238,20 @@ std::vector<move_t> korf_solve(Cube cube){
 bool korf_solve_ida(Cube &cube, std::vector<move_t> &moves, std::vector<move_t> &searchMoves, int depth, int bound){
     if(depth == bound) return cube.isComplete();
 
+    //std::cout << depth << '\t' << bound << std::endl;
     std::priority_queue<KorfPriority, std::vector<KorfPriority>, KorfPriorityCompare> pQueue;
 
-    for(move_t move : moves){
+    for(move_t move : searchMoves){
         if(moves.empty() || !solve_pruner(move, moves.back())){
 
             cube.doMove(move,false);
 
             KorfPriority p;
             p.move = move;
-            p.max = std::max(std::max(gEdges1Map[cube.korfGetEdge1Ind()],gEdges2Map[cube.korfGetEdge2Ind()]),gCornersMap[cube.korfGetCornerInd()]);
+            p.max = std::max(std::max(gEdges1Map[cube.korfGetEdge1Ind()],gEdges2Map[cube.korfGetEdge2Ind()]),gCornersMap[cube.korfGetCornerInd()]) + depth + 1;
             cube.doMove(get_move_opposite(move),false);
             
-            if(p.max + depth + 1 <= bound) pQueue.push(p);
+            if(p.max <= bound) pQueue.push(p);
         }
     }
 
@@ -253,7 +260,7 @@ bool korf_solve_ida(Cube &cube, std::vector<move_t> &moves, std::vector<move_t> 
         cube.doMove(pQueue.top().move, false);
         moves.push_back(pQueue.top().move);
 
-        if(korf_solve_ida(cube, moves, searchMoves, depth+1, pQueue.top().max + depth + 1 < bound ? pQueue.top().max + depth + 1 : bound)) return true;
+        if(korf_solve_ida(cube, moves, searchMoves, depth+1, pQueue.top().max < bound ? pQueue.top().max : bound)) return true;
         else{
             cube.doMove(get_move_opposite(pQueue.top().move), false);
             moves.pop_back();
