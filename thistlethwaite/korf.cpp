@@ -12,6 +12,16 @@ std::unordered_map<int,byte_t> gCornersMap;
 std::unordered_map<int,byte_t> gEdges1Map;
 std::unordered_map<int, byte_t> gEdges2Map;
 
+struct KorfPriority {
+    byte_t max;
+    move_t move;
+};
+struct KorfPriorityCompare {
+    bool operator()(const KorfPriority &lhs, const KorfPriority &rhs) const{
+        return lhs.max < rhs.max;
+    }
+};
+
 /*std::unordered_map<compact_t,byte_t> generate_map_korf(){
     std::unordered_map<compact_t,byte_t> movesMap;
     std::vector<Cube> cubeVec;
@@ -212,10 +222,44 @@ std::vector<move_t> korf_solve(Cube cube){
     std::vector<move_t> moves;
     std::vector<move_t> searchMoves = get_moves_from_str("F F\' B B\' L L\' R R\' U U\' D D\' F2 B2 U2 D2 L2 R2");
 
-    int maxDepth = 0;
-
     //TODO: write A* search here
+    korf_solve_ida(cube, moves, searchMoves, 0, std::max(std::max(gEdges1Map[cube.korfGetEdge1Ind()],gEdges2Map[cube.korfGetEdge2Ind()]),gCornersMap[cube.korfGetCornerInd()]));
 
     return moves;
 
+}
+
+bool korf_solve_ida(Cube &cube, std::vector<move_t> &moves, std::vector<move_t> &searchMoves, int depth, int bound){
+    if(depth == bound) return cube.isComplete();
+
+    std::priority_queue<KorfPriority, std::vector<KorfPriority>, KorfPriorityCompare> pQueue;
+
+    for(move_t move : moves){
+        if(moves.empty() || !solve_pruner(move, moves.back())){
+
+            cube.doMove(move,false);
+
+            KorfPriority p;
+            p.move = move;
+            p.max = std::max(std::max(gEdges1Map[cube.korfGetEdge1Ind()],gEdges2Map[cube.korfGetEdge2Ind()]),gCornersMap[cube.korfGetCornerInd()]);
+            cube.doMove(get_move_opposite(move),false);
+            
+            if(p.max + depth + 1 <= bound) pQueue.push(p);
+        }
+    }
+
+
+    while(!pQueue.empty()){
+        cube.doMove(pQueue.top().move, false);
+        moves.push_back(pQueue.top().move);
+
+        if(korf_solve_ida(cube, moves, searchMoves, depth+1, pQueue.top().max + depth + 1 < bound ? pQueue.top().max + depth + 1 : bound)) return true;
+        else{
+            cube.doMove(get_move_opposite(pQueue.top().move), false);
+            moves.pop_back();
+            pQueue.pop();
+        }
+    }
+
+    return false;
 }
