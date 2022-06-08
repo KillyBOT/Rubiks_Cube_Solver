@@ -71,7 +71,7 @@ int main()
     
     //korf_create_maps();
 
-    cube.randomize(13,true);
+    cube.randomize(14,true);
     cube.printCube();
     
     cube.doMoves(korf_solve(cube,true));

@@ -123,6 +123,15 @@ namespace cube_defs{
         kBU,kBD,0,kBL,kBR,0,kBD,kBU,0,kBR,kBL,0//B
     };
 
+    /*const std::array<std::array<std::array<corner_t,3>,8>,4> symmetryCornerMoves
+    =
+    {
+        kFUR,kFUR,1,kFUL,kFDR,2,kBUL,kFDL,1,kBUR,kFUL,2,kFDR,kBUR,2,kFDL,kBDR,1,kBDL,kBDL,2,kBDR,kBUL,1, //S_URF3
+        kFUR,kFDL,0,kFUL,kFDR,0,kBUL,kBDR,0,kBUR,kBDL,0,kFDR,kFUL,0,kFDL,kFUR,0,kBDL,kBUR,0,kBDR,kBUL,0, //S_F2
+        kFUR,kBUR,0,kFUL,kFUR,0,kBUL,kFUL,0,kBUR,kBUL,0,kFDR,kBDR,0,kFDL,kFDR,0,kBDL,kFDL,0,kBDR,kBDL,0, //S_U4
+        kFUR,kFUL, kBUL, kFBUR, kFDR, kFDL, kBDL, kBDR
+    };*/
+
 }
 
 class Cube {
