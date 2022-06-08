@@ -5,12 +5,17 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <fstream>
+#include <chrono>
 
 #include "solve.hpp"
 
 std::unordered_map<int,byte_t> gCornersMap;
 std::unordered_map<int,byte_t> gEdges1Map;
 std::unordered_map<int, byte_t> gEdges2Map;
+
+std::ifstream gCornerFS;
+std::ifstream gEdges1FS;
+std::ifstream gEdges2FS;
 
 struct KorfPriority {
     byte_t max;
@@ -21,67 +26,6 @@ struct KorfPriorityCompare {
         return lhs.max < rhs.max;
     }
 };
-
-/*std::unordered_map<compact_t,byte_t> generate_map_korf(){
-    std::unordered_map<compact_t,byte_t> movesMap;
-    std::vector<Cube> cubeVec;
-    std::vector<move_t> moves = get_moves_from_str("F F\' B B\' L L\' R R\' U U\' D D\' F2 B2 U2 D2 L2 R2");
-
-    Cube currentCube;
-    Cube newCube;
-
-    movesMap.insert(std::pair<compact_t,byte_t>(currentCube.getCompact(),0));
-    cubeVec.push_back(currentCube);
-
-    while(cubeVec.size()){
-
-        currentCube = cubeVec.back();
-        cubeVec.pop_back();
-
-        for(move_t move : moves) {
-            newCube = currentCube;
-            newCube.doMove(move);
-            if(!movesMap.count(newCube.getCompact()) || movesMap[currentCube.getCompact()] + 1 < movesMap[newCube.getCompact()]){
-                movesMap[newCube.getCompact()] = movesMap[currentCube.getCompact()] + 1;
-                cubeVec.push_back(newCube);
-            }
-        }
-        
-    }
-
-    return movesMap;
-}
-void write_map_korf(std::string filename, std::unordered_map<compact_t,byte_t> movesMap){
-    std::ofstream fs;
-    fs.open(filename, std::ios::out | std::ios::binary);
-
-    unsigned long toWrite;
-
-    for(std::pair<compact_t,byte_t> movePair : movesMap){
-        fs.write((char*)&movePair.first,16);
-        fs.write((char*)&movePair.second,1);
-    }
-
-    fs.close();
-}
-std::unordered_map<compact_t,byte_t> read_map_korf(std::string filename){
-    std::unordered_map<compact_t, byte_t> movesMap;
-    std::pair<compact_t, byte_t> movePair;
-
-    std::ifstream fs;
-    fs.open(filename, std::ios::in | std::ios::binary);
-
-    while(!fs.eof()){
-        fs.read((char*)&movePair.first,16);
-        fs.read((char*)&movePair.second,1);
-        movesMap.insert(movePair);
-    }
-
-    fs.close();
-
-    return movesMap;
-}
-std::vector<move_t> solve_korf(Cube cube);*/
 
 void korf_create_maps(){
     std::unordered_map<int, byte_t> edges1Map;
@@ -178,9 +122,9 @@ void korf_write_map(std::string filename, std::unordered_map<int,byte_t> &moveMa
 
     byte_t toWrite;
     for(size_t ind = 0; ind < moveMap.size(); ind += 2){
-        toWrite = (moveMap.count(ind) ? moveMap[ind] : 0);
+        toWrite = (moveMap.count(ind) ? moveMap[ind] & 0b1111: 0);
         toWrite <<= 4;
-        toWrite |= (moveMap.count(ind+1) ? moveMap[ind+1] : 0);
+        toWrite |= (moveMap.count(ind+1) ? moveMap[ind+1] & 0b1111: 0);
         fs.write((char*)&toWrite,1);
     }
     if(moveMap.size() % 2){
@@ -211,47 +155,78 @@ std::unordered_map<int, byte_t> korf_read_map(std::string filename){
     return moveMap;
 }
 
-std::vector<move_t> korf_solve(Cube cube){
-    gCornersMap = korf_read_map("korf_corners");
-    std::cout << "Corners read" << std::endl;
-    gEdges1Map = korf_read_map("korf_edges_1");
-    std::cout << "Edges 1 read" << std::endl;
-    gEdges2Map = korf_read_map("korf_edges_2");
-    std::cout << "Edges 2 read" << std::endl;
+byte_t korf_read_map_fs(std::ifstream &fs, int ind){
+    fs.seekg(ind >> 1, std::ios::beg);
+    byte_t buff;
+    fs.read((char*)&buff,1);
+    if(ind % 2) return buff & 0b1111;
+    else return buff >> 4;
+}
+
+std::vector<move_t> korf_solve(Cube cube, bool printMoves){
+    //gCornersMap = korf_read_map("korf_corners");
+    //std::cout << "Corners read" << std::endl;
+    //gEdges1Map = korf_read_map("korf_edges_1");
+    //std::cout << "Edges 1 read" << std::endl;
+    //gEdges2Map = korf_read_map("korf_edges_2");
+    //std::cout << "Edges 2 read" << std::endl;
+    gCornerFS.open("korf_corners", std::ios::binary | std::ios::in);
+    gEdges1FS.open("korf_edges_1", std::ios::binary | std::ios::in);
+    gEdges2FS.open("korf_edges_2", std::ios::binary | std::ios::in);
 
     std::vector<move_t> moves;
     std::vector<move_t> searchMoves = get_moves_from_str("F F\' B B\' L L\' R R\' U U\' D D\' F2 B2 U2 D2 L2 R2");
 
-    //TODO: write A* search here
+    //int bound = std::max(std::max(gEdges1Map[cube.korfGetEdge1Ind()],gEdges2Map[cube.korfGetEdge2Ind()]),gCornersMap[cube.korfGetCornerInd()]);
+    int bound = std::max(std::max(korf_read_map_fs(gEdges1FS,cube.korfGetEdge1Ind()),korf_read_map_fs(gEdges2FS,cube.korfGetEdge2Ind())),korf_read_map_fs(gCornerFS,cube.korfGetCornerInd()));
+    int nextBound = 256;
 
-    int maxDepth = std::max(std::max(gEdges1Map[cube.korfGetEdge1Ind()],gEdges2Map[cube.korfGetEdge2Ind()]),gCornersMap[cube.korfGetCornerInd()]);
+    std::cout << "Starting bound of " << bound << std::endl;
+    
+    auto msStart = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
-    while(!korf_solve_ida(cube, moves, searchMoves, 0, maxDepth)){
-        maxDepth++;
-        std::cout << "Max depth increased to " << maxDepth << std::endl;
+    while(!korf_solve_ida(cube, moves, searchMoves, 0, bound, nextBound)){
+        bound = nextBound;
+        nextBound = 256;
+        std::cout << "Bound increased to " << bound << std::endl;
     }
 
-    return moves;
+    auto msEnd = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
+    std::cout << "Solve time of " << (msEnd - msStart) << " ms" << std::endl;
+    std::cout << "Average time per move of " << (msEnd - msStart) << " ms" << std::endl;
+    if(printMoves){
+        for(move_t move : moves) std::cout << get_str_from_move(move) << ' ';
+        std::cout << std::endl;
+    }
+
+    gCornerFS.close();
+    gEdges1FS.close();
+    gEdges2FS.close();
+
+    return moves;
 }
 
-bool korf_solve_ida(Cube &cube, std::vector<move_t> &moves, std::vector<move_t> &searchMoves, int depth, int bound){
+bool korf_solve_ida(Cube &cube, std::vector<move_t> &moves, std::vector<move_t> &searchMoves, int depth, int &bound, int &nextBound){
     if(depth == bound) return cube.isComplete();
 
     //std::cout << depth << '\t' << bound << std::endl;
     std::priority_queue<KorfPriority, std::vector<KorfPriority>, KorfPriorityCompare> pQueue;
 
     for(move_t move : searchMoves){
-        if(moves.empty() || !solve_pruner(move, moves.back())){
+        if(!depth || !solve_pruner(move, moves.back())){
 
             cube.doMove(move,false);
 
             KorfPriority p;
             p.move = move;
-            p.max = std::max(std::max(gEdges1Map[cube.korfGetEdge1Ind()],gEdges2Map[cube.korfGetEdge2Ind()]),gCornersMap[cube.korfGetCornerInd()]) + depth + 1;
+            //p.max = std::max(std::max(gEdges1Map[cube.korfGetEdge1Ind()],gEdges2Map[cube.korfGetEdge2Ind()]),gCornersMap[cube.korfGetCornerInd()]) + depth + 1;
+            p.max = std::max(std::max(korf_read_map_fs(gEdges1FS,cube.korfGetEdge1Ind()),korf_read_map_fs(gEdges2FS,cube.korfGetEdge2Ind())),korf_read_map_fs(gCornerFS,cube.korfGetCornerInd())) + depth + 1;
+
             cube.doMove(get_move_opposite(move),false);
             
             if(p.max <= bound) pQueue.push(p);
+            else if(p.max < nextBound) nextBound = p.max;
         }
     }
 
@@ -260,7 +235,7 @@ bool korf_solve_ida(Cube &cube, std::vector<move_t> &moves, std::vector<move_t> 
         cube.doMove(pQueue.top().move, false);
         moves.push_back(pQueue.top().move);
 
-        if(korf_solve_ida(cube, moves, searchMoves, depth+1, pQueue.top().max < bound ? pQueue.top().max : bound)) return true;
+        if(korf_solve_ida(cube, moves, searchMoves, depth+1, bound, nextBound)) return true;
         else{
             cube.doMove(get_move_opposite(pQueue.top().move), false);
             moves.pop_back();

@@ -63,10 +63,10 @@ int main()
     cube.printOrientations();*/
 
     //std::thread cornerThread(korf_create_map, "korf_corners", &Cube::korfGetCornerInd, 11);
-    //std::thread edge1Thread(korf_create_map, "korf_edges_1", &Cube::korfGetEdge1Ind, 10);
-    //std::thread edge2Thread(korf_create_map, "korf_edges_2", &Cube::korfGetEdge2Ind, 10);
-    //edge1Thread.join();
-    //edge2Thread.join();
+    /*std::thread edge1Thread(korf_create_map, "korf_edges_1", &Cube::korfGetEdge1Ind, 10);
+    std::thread edge2Thread(korf_create_map, "korf_edges_2", &Cube::korfGetEdge2Ind, 10);
+    edge1Thread.join();
+    edge2Thread.join();*/
     //cornerThread.join();
     
     //korf_create_maps();
@@ -74,10 +74,7 @@ int main()
     cube.randomize(12,true);
     cube.printCube();
     
-    std::vector<move_t> moves = korf_solve(cube);
-    for(move_t move: moves) std::cout << get_str_from_move(move) << ' ';
-    std::cout << std::endl;
-    cube.doMoves(moves);
+    cube.doMoves(korf_solve(cube,true));
     cube.printCube();
 
     return 0;

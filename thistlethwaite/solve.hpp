@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <fstream>
 
 #include "cube.hpp"
 
@@ -25,11 +26,13 @@ std::unordered_map<int,std::pair<int,compact_t>> thistlethwaite_read_map(std::st
 
 void korf_create_map(std::string, int (Cube::*)(), byte_t);
 void korf_create_map_dfs(Cube &, int (Cube::*)(), std::unordered_map<int,byte_t>&, std::vector<move_t>&, move_t, byte_t, byte_t&);
+void korf_create_map_iddfs(Cube &, int (Cube::*)(), std::unordered_map<int,byte_t>&, std::vector<move_t>&, move_t, byte_t, byte_t&);
 void korf_create_maps();
 void korf_write_map(std::string,std::unordered_map<int,byte_t>&);
 std::unordered_map<int,byte_t> korf_read_map(std::string);
+byte_t korf_read_map_fs(std::ifstream &, int);
 
-std::vector<move_t> korf_solve(Cube);
-bool korf_solve_ida(Cube &, std::vector<move_t> &, std::vector<move_t> &, int, int);
+std::vector<move_t> korf_solve(Cube, bool = false);
+bool korf_solve_ida(Cube &, std::vector<move_t> &, std::vector<move_t> &, int, int&, int&);
 
 #endif

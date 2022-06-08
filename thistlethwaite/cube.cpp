@@ -342,17 +342,22 @@ int Cube::getCornerPermutation(){
     }
 }*/
 
-inline int factorial(int n){
+/*inline int factorial(int n){
     int ans = 1;
     for(int i = 2; i <= n; i++) ans *= i;
     return ans;
-}
+}*/
 
 inline int npk(int n, int k){
-    return factorial(n) / factorial(n - k);
+    int ans = 1;
+    for(int i = 0; i < k; i++){
+        ans *= n;
+        n--;
+    }
+    return ans;
 }
 
-int Cube::korfGetEdge1Ind(){
+/*int Cube::korfGetEdge1Ind(){
     int ans = 0;
     int toAdd;
     for(int i = 0; i < 6; i++){
@@ -369,9 +374,34 @@ int Cube::korfGetEdge1Ind(){
     }
 
     return ans;
+}*/
+int Cube::korfGetEdge1Ind(){
+    int ans = 0;
+    int perm[6];
+    for(int ind = 0; ind < 12; ind++){
+        if(this->edges[ind] < 6){
+            perm[this->edges[ind]] = ind;
+        }
+    }
+
+    int toAdd;
+    for(int i = 0; i < 6; i++){
+        toAdd = perm[i];
+        for(int j = 0; j < i; j++){
+            if(perm[i] > perm[j]) toAdd--;
+        }
+        ans += toAdd * npk(11-i,5-i);
+    }
+
+    for(int ind = 0; ind < 6; ind++){
+        ans <<= 1;
+        ans |= this->edgeOri[perm[ind]];
+    }
+
+    return ans;
 }
 
-int Cube::korfGetEdge2Ind(){
+/*int Cube::korfGetEdge2Ind(){
     int ans = 0;
     int toAdd;
     for(int i = 6; i < 12; i++){
@@ -385,6 +415,32 @@ int Cube::korfGetEdge2Ind(){
     for(int ind = 6; ind < 12; ind++){
         ans <<= 1;
         ans |= this->edgeOri[ind];
+    }
+
+    return ans;
+}*/
+
+int Cube::korfGetEdge2Ind(){
+    int ans = 0;
+    int perm[6];
+    for(int ind = 0; ind < 12; ind++){
+        if(this->edges[ind] > 5){
+            perm[this->edges[ind]-6] = ind;
+        }
+    }
+
+    int toAdd;
+    for(int i = 0; i < 6; i++){
+        toAdd = perm[i];
+        for(int j = 0; j < i; j++){
+            if(perm[i] > perm[j]) toAdd--;
+        }
+        ans += toAdd * npk(11-i,5-i);
+    }
+
+    for(int ind = 0; ind < 6; ind++){
+        ans <<= 1;
+        ans |= this->edgeOri[perm[ind]];
     }
 
     return ans;
