@@ -63,10 +63,10 @@ int main()
     cube.printOrientations();*/
 
     //std::thread cornerThread(korf_create_map, "korf_corners", &Cube::korfGetCornerInd, 11);
-    /*std::thread edge1Thread(korf_create_map, "korf_edges_1", &Cube::korfGetEdge1Ind, 10);
-    std::thread edge2Thread(korf_create_map, "korf_edges_2", &Cube::korfGetEdge2Ind, 10);
-    edge1Thread.join();
-    edge2Thread.join();*/
+    //std::thread edge1Thread(korf_create_map, "korf_edges_1_7", &Cube::korfGetEdge1Ind, 11);
+    //std::thread edge2Thread(korf_create_map, "korf_edges_2_7", &Cube::korfGetEdge2Ind, 11);
+    //edge1Thread.join();
+    //edge2Thread.join();
     //cornerThread.join();
     
     //korf_create_maps();

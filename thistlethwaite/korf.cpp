@@ -122,13 +122,9 @@ void korf_write_map(std::string filename, std::unordered_map<int,byte_t> &moveMa
 
     byte_t toWrite;
     for(size_t ind = 0; ind < moveMap.size(); ind += 2){
-        toWrite = (moveMap.count(ind) ? moveMap[ind] & 0b1111: 0);
+        toWrite = moveMap[ind];
         toWrite <<= 4;
-        toWrite |= (moveMap.count(ind+1) ? moveMap[ind+1] & 0b1111: 0);
-        fs.write((char*)&toWrite,1);
-    }
-    if(moveMap.size() % 2){
-        toWrite = moveMap[moveMap.size() - 1] << 4;
+        toWrite |= moveMap[ind+1];
         fs.write((char*)&toWrite,1);
     }
 
@@ -171,8 +167,8 @@ std::vector<move_t> korf_solve(Cube cube, bool printMoves){
     //gEdges2Map = korf_read_map("korf_edges_2");
     //std::cout << "Edges 2 read" << std::endl;
     gCornerFS.open("korf_corners", std::ios::binary | std::ios::in);
-    gEdges1FS.open("korf_edges_1", std::ios::binary | std::ios::in);
-    gEdges2FS.open("korf_edges_2", std::ios::binary | std::ios::in);
+    gEdges1FS.open("korf_edges_1_6", std::ios::binary | std::ios::in);
+    gEdges2FS.open("korf_edges_2_6", std::ios::binary | std::ios::in);
 
     std::vector<move_t> moves;
     std::vector<move_t> searchMoves = get_moves_from_str("F F\' B B\' L L\' R R\' U U\' D D\' F2 B2 U2 D2 L2 R2");

@@ -10,6 +10,9 @@
 
 #include "cube.hpp"
 
+static const int npkDatabase[6] = {55440, 5040, 504, 56, 7, 1};
+//static const int npkDatabase[7] = {332640, 30240, 3024, 336, 42, 6, 1};
+
 std::array<face_t,3> get_corner_face(corner_t corner, byte_t ori){
 
     using namespace cube_defs;
@@ -348,33 +351,15 @@ int Cube::getCornerPermutation(){
     return ans;
 }*/
 
-inline int npk(int n, int k){
+/*inline int npk(int n, int k){
     int ans = 1;
     for(int i = 0; i < k; i++){
         ans *= n;
         n--;
     }
     return ans;
-}
-
-/*int Cube::korfGetEdge1Ind(){
-    int ans = 0;
-    int toAdd;
-    for(int i = 0; i < 6; i++){
-        toAdd = this->edges[i];
-        for(int j = 0; j < i; j++){
-            if(this->edges[i] > this->edges[j]) toAdd--;
-        }
-        ans += toAdd * npk(11-i,5-i);
-    }
-
-    for(int ind = 0; ind < 6; ind++){
-        ans <<= 1;
-        ans |= this->edgeOri[ind];
-    }
-
-    return ans;
 }*/
+//These use the first and last 6 edges
 int Cube::korfGetEdge1Ind(){
     int ans = 0;
     int perm[6];
@@ -390,7 +375,7 @@ int Cube::korfGetEdge1Ind(){
         for(int j = 0; j < i; j++){
             if(perm[i] > perm[j]) toAdd--;
         }
-        ans += toAdd * npk(11-i,5-i);
+        ans += toAdd * npkDatabase[i];
     }
 
     for(int ind = 0; ind < 6; ind++){
@@ -401,24 +386,6 @@ int Cube::korfGetEdge1Ind(){
     return ans;
 }
 
-/*int Cube::korfGetEdge2Ind(){
-    int ans = 0;
-    int toAdd;
-    for(int i = 6; i < 12; i++){
-        toAdd = this->edges[i];
-        for(int j = 6; j < i; j++){
-            if(this->edges[i] > this->edges[j]) toAdd--;
-        }
-        ans += toAdd * npk(17-i,11-i); 
-    }
-
-    for(int ind = 6; ind < 12; ind++){
-        ans <<= 1;
-        ans |= this->edgeOri[ind];
-    }
-
-    return ans;
-}*/
 
 int Cube::korfGetEdge2Ind(){
     int ans = 0;
@@ -435,7 +402,7 @@ int Cube::korfGetEdge2Ind(){
         for(int j = 0; j < i; j++){
             if(perm[i] > perm[j]) toAdd--;
         }
-        ans += toAdd * npk(11-i,5-i);
+        ans += toAdd * npkDatabase[i];
     }
 
     for(int ind = 0; ind < 6; ind++){
@@ -445,7 +412,57 @@ int Cube::korfGetEdge2Ind(){
 
     return ans;
 }
+//These use the first and last 7 edges
+/*int Cube::korfGetEdge1Ind(){
+    int ans = 0;
+    int perm[7];
+    for(int ind = 0; ind < 12; ind++){
+        if(this->edges[ind] < 7){
+            perm[this->edges[ind]] = ind;
+        }
+    }
 
+    int toAdd;
+    for(int i = 0; i < 7; i++){
+        toAdd = perm[i];
+        for(int j = 0; j < i; j++){
+            if(perm[i] > perm[j]) toAdd--;
+        }
+        ans += toAdd * npkDatabase[i];
+    }
+
+    for(int ind = 0; ind < 7; ind++){
+        ans <<= 1;
+        ans |= this->edgeOri[perm[ind]];
+    }
+
+    return ans;
+}
+int Cube::korfGetEdge2Ind(){
+    int ans = 0;
+    int perm[7];
+    for(int ind = 0; ind < 12; ind++){
+        if(this->edges[ind] > 4){
+            perm[this->edges[ind]-5] = ind;
+        }
+    }
+
+    int toAdd;
+    for(int i = 0; i < 7; i++){
+        toAdd = perm[i];
+        for(int j = 0; j < i; j++){
+            if(perm[i] > perm[j]) toAdd--;
+        }
+        ans += toAdd * npkDatabase[i];
+    }
+
+    for(int ind = 0; ind < 7; ind++){
+        ans <<= 1;
+        ans |= this->edgeOri[perm[ind]];
+    }
+
+    return ans;
+}*/
 int Cube::korfGetCornerInd(){
     int ans = 0;
     int num = 1;
