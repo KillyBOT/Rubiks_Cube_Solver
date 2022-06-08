@@ -194,7 +194,7 @@ std::vector<move_t> korf_solve(Cube cube, bool printMoves){
     auto msEnd = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
     std::cout << "Solve time of " << (msEnd - msStart) << " ms" << std::endl;
-    std::cout << "Average time per move of " << (msEnd - msStart) << " ms" << std::endl;
+    std::cout << "Average time per move of " << (msEnd - msStart)/moves.size() << " ms" << std::endl;
     if(printMoves){
         for(move_t move : moves) std::cout << get_str_from_move(move) << ' ';
         std::cout << std::endl;
